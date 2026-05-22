@@ -1,0 +1,194 @@
+
+========================================================================
+[2026-05-21 16:04:04 UTC]  NPM INSTALL CLIENT | success=True
+========================================================================
+npm install succeeded in client/
+
+========================================================================
+[2026-05-21 16:04:10 UTC]  NPM INSTALL SERVER | success=True
+========================================================================
+npm install succeeded in server/
+
+========================================================================
+[2026-05-21 16:04:10 UTC]  APP.JSX CONTENT CHECK | tier=A | passed=True
+========================================================================
+App.jsx differs from template
+
+========================================================================
+[2026-05-21 16:04:12 UTC]  APP.JSX CONTENT CHECK | tier=B | passed=True
+========================================================================
+ok
+
+========================================================================
+[2026-05-21 16:24:45 UTC]  NPM INSTALL CLIENT | skipped
+========================================================================
+deps unchanged — skipping install
+
+========================================================================
+[2026-05-21 16:24:45 UTC]  NPM INSTALL SERVER | skipped
+========================================================================
+deps unchanged — skipping install
+
+========================================================================
+[2026-05-21 16:25:03 UTC]  PM2 LOGS CLIENT | process_found=True
+========================================================================
+[TAILING] Tailing last 50 lines for [6a0f27b6dee697aabacc6c1e--client] process (change the value with --lines option)
+/root/.pm2/logs/6a0f27b6dee697aabacc6c1e--client-error-15.log last 50 lines:
+15|6a0f27b | 2026-05-21T16:15:41:       at constructor (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:365:19)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.raise (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:6616:19)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.jsxReadToken (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4460:20)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.getTokenFromCode (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4786:12)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.nextToken (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:5799:10)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.next (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:5709:10)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.eat (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:5713:12)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.expect (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:6915:15)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.jsxParseClosingElementAt (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4692:10)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.jsxParseElementAt (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4707:37)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.jsxParseElementAt (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4710:32)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.jsxParseElement (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4761:17)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.parseExprAtom (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4771:19)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.parseExprSubscripts (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:11098:23)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.parseUpdate (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:11083:21)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.parseMaybeUnary (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:11063:23)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.par
+
+========================================================================
+[2026-05-21 16:47:20 UTC]  NPM INSTALL CLIENT | skipped
+========================================================================
+deps unchanged — skipping install
+
+========================================================================
+[2026-05-21 16:47:20 UTC]  NPM INSTALL SERVER | skipped
+========================================================================
+deps unchanged — skipping install
+
+========================================================================
+[2026-05-21 16:47:38 UTC]  PM2 LOGS SERVER | process_found=True
+========================================================================
+[TAILING] Tailing last 50 lines for [6a0f27b6dee697aabacc6c1e--server] process (change the value with --lines option)
+/root/.pm2/logs/6a0f27b6dee697aabacc6c1e--server-error-14.log last 50 lines:
+/root/.pm2/logs/6a0f27b6dee697aabacc6c1e--server-out-14.log last 50 lines:
+14|6a0f27b | 2026-05-21T16:47:20: 
+14|6a0f27b | 2026-05-21T16:47:20: > express-mongo-app@1.0.0 start
+14|6a0f27b | 2026-05-21T16:47:20: > node ./src/index.js
+14|6a0f27b | 2026-05-21T16:47:20: 
+14|6a0f27b | 2026-05-21T16:47:21: Connected to MongoDB
+14|6a0f27b | 2026-05-21T16:47:21: Seeding complete
+14|6a0f27b | 2026-05-21T16:47:21: Server listening on port 3177
+
+========================================================================
+[2026-05-21 16:47:38 UTC]  PM2 LOGS CLIENT | process_found=True
+========================================================================
+[TAILING] Tailing last 50 lines for [6a0f27b6dee697aabacc6c1e--client] process (change the value with --lines option)
+/root/.pm2/logs/6a0f27b6dee697aabacc6c1e--client-error-15.log last 50 lines:
+15|6a0f27b | 2026-05-21T16:15:41:       at constructor (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:365:19)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.raise (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:6616:19)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.jsxReadToken (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4460:20)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.getTokenFromCode (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4786:12)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.nextToken (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:5799:10)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.next (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:5709:10)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.eat (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:5713:12)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.expect (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:6915:15)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.jsxParseClosingElementAt (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4692:10)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.jsxParseElementAt (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4707:37)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.jsxParseElementAt (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4710:32)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.jsxParseElement (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4761:17)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.parseExprAtom (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4771:19)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.parseExprSubscripts (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:11098:23)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.parseUpdate (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:11083:21)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.parseMaybeUnary (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:11063:23)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.par
+
+========================================================================
+[2026-05-21 17:04:06 UTC]  NPM INSTALL CLIENT | skipped
+========================================================================
+deps unchanged — skipping install
+
+========================================================================
+[2026-05-21 17:04:06 UTC]  NPM INSTALL SERVER | skipped
+========================================================================
+deps unchanged — skipping install
+
+========================================================================
+[2026-05-21 17:04:24 UTC]  PM2 LOGS CLIENT | process_found=True
+========================================================================
+[TAILING] Tailing last 50 lines for [6a0f27b6dee697aabacc6c1e--client] process (change the value with --lines option)
+/root/.pm2/logs/6a0f27b6dee697aabacc6c1e--client-error-15.log last 50 lines:
+15|6a0f27b | 2026-05-21T16:15:41:       at constructor (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:365:19)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.raise (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:6616:19)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.jsxReadToken (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4460:20)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.getTokenFromCode (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4786:12)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.nextToken (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:5799:10)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.next (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:5709:10)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.eat (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:5713:12)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.expect (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:6915:15)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.jsxParseClosingElementAt (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4692:10)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.jsxParseElementAt (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4707:37)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.jsxParseElementAt (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4710:32)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.jsxParseElement (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4761:17)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.parseExprAtom (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4771:19)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.parseExprSubscripts (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:11098:23)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.parseUpdate (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:11083:21)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.parseMaybeUnary (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:11063:23)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.par
+
+========================================================================
+[2026-05-21 17:04:24 UTC]  PM2 LOGS SERVER | process_found=True
+========================================================================
+[TAILING] Tailing last 50 lines for [6a0f27b6dee697aabacc6c1e--server] process (change the value with --lines option)
+/root/.pm2/logs/6a0f27b6dee697aabacc6c1e--server-error-14.log last 50 lines:
+/root/.pm2/logs/6a0f27b6dee697aabacc6c1e--server-out-14.log last 50 lines:
+14|6a0f27b | 2026-05-21T17:04:06: 
+14|6a0f27b | 2026-05-21T17:04:06: > express-mongo-app@1.0.0 start
+14|6a0f27b | 2026-05-21T17:04:06: > node ./src/index.js
+14|6a0f27b | 2026-05-21T17:04:06: 
+14|6a0f27b | 2026-05-21T17:04:07: Connected to MongoDB
+14|6a0f27b | 2026-05-21T17:04:08: Seeding complete
+14|6a0f27b | 2026-05-21T17:04:08: Server listening on port 3177
+
+========================================================================
+[2026-05-21 17:21:36 UTC]  NPM INSTALL CLIENT | skipped
+========================================================================
+deps unchanged — skipping install
+
+========================================================================
+[2026-05-21 17:21:36 UTC]  NPM INSTALL SERVER | skipped
+========================================================================
+deps unchanged — skipping install
+
+========================================================================
+[2026-05-21 17:21:54 UTC]  PM2 LOGS SERVER | process_found=True
+========================================================================
+[TAILING] Tailing last 50 lines for [6a0f27b6dee697aabacc6c1e--server] process (change the value with --lines option)
+/root/.pm2/logs/6a0f27b6dee697aabacc6c1e--server-error-14.log last 50 lines:
+/root/.pm2/logs/6a0f27b6dee697aabacc6c1e--server-out-14.log last 50 lines:
+14|6a0f27b | 2026-05-21T17:21:36: 
+14|6a0f27b | 2026-05-21T17:21:36: > express-mongo-app@1.0.0 start
+14|6a0f27b | 2026-05-21T17:21:36: > node ./src/index.js
+14|6a0f27b | 2026-05-21T17:21:36: 
+14|6a0f27b | 2026-05-21T17:21:37: Connected to MongoDB
+14|6a0f27b | 2026-05-21T17:21:38: Seeding complete
+14|6a0f27b | 2026-05-21T17:21:38: Server listening on port 3177
+
+========================================================================
+[2026-05-21 17:21:54 UTC]  PM2 LOGS CLIENT | process_found=True
+========================================================================
+[TAILING] Tailing last 50 lines for [6a0f27b6dee697aabacc6c1e--client] process (change the value with --lines option)
+/root/.pm2/logs/6a0f27b6dee697aabacc6c1e--client-error-15.log last 50 lines:
+15|6a0f27b | 2026-05-21T16:15:41:       at constructor (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:365:19)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.raise (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:6616:19)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.jsxReadToken (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4460:20)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.getTokenFromCode (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4786:12)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.nextToken (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:5799:10)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.next (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:5709:10)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.eat (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:5713:12)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.expect (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:6915:15)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.jsxParseClosingElementAt (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4692:10)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.jsxParseElementAt (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4707:37)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.jsxParseElementAt (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4710:32)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.jsxParseElement (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4761:17)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.parseExprAtom (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:4771:19)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.parseExprSubscripts (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:11098:23)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.parseUpdate (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:11083:21)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.parseMaybeUnary (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:11063:23)
+15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.par

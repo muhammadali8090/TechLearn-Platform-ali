@@ -1,0 +1,14 @@
+export const DEMO_USERS = [
+  {
+    email: 'admin@learnify.com',
+    password: 'Admin@1234',
+    role: 'admin',
+    name: 'Alex Morgan',
+  },
+  {
+    email: 'student@learnify.com',
+    password: 'Student@1234',
+    role: 'student',
+    name: 'Jamie Lee',
+  },
+];

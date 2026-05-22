@@ -1,0 +1,200 @@
+
+========================================================================
+[2026-05-21 16:04:54 UTC]
+========================================================================
+REQUEST: 747bcf3d2bb1
+OPERATION: reindex (50 file(s) submitted)
+
+INDEXED (49):
+  + .kilocode/package-lock.json  [1 chunk(s)]
+  + .kilocode/package.json  [1 chunk(s)]
+  + client/src/components/AdminRoute.jsx  [1 chunk(s)]
+  + client/src/components/CourseCard.jsx  [1 chunk(s)]
+  + client/src/components/Navbar.jsx  [1 chunk(s)]
+  + client/src/components/ProgressBar.jsx  [1 chunk(s)]
+  + client/src/components/ProtectedRoute.jsx  [1 chunk(s)]
+  + client/src/config/demoUsers.js  [1 chunk(s)]
+  + client/src/context/AuthContext.jsx  [1 chunk(s)]
+  + client/src/hooks/useAuth.js  [1 chunk(s)]
+  + client/src/pages/AdminDashboard.jsx  [1 chunk(s)]
+  + client/src/pages/Auth.jsx  [1 chunk(s)]
+  + client/src/pages/Certificate.jsx  [1 chunk(s)]
+  + client/src/pages/CourseBuilder.jsx  [4 chunk(s)]
+  + client/src/pages/CourseDetail.jsx  [1 chunk(s)]
+  + client/src/pages/CourseViewer.jsx  [1 chunk(s)]
+  + client/src/pages/Courses.jsx  [1 chunk(s)]
+  + client/src/pages/Dashboard.jsx  [2 chunk(s)]
+  + client/src/pages/Exam.jsx  [1 chunk(s)]
+  + client/src/pages/Home.jsx  [1 chunk(s)]
+  + client/src/pages/InstructorProfile.jsx  [1 chunk(s)]
+  + client/src/pages/Instructors.jsx  [1 chunk(s)]
+  + client/src/pages/NotFound.jsx  [1 chunk(s)]
+  + client/src/services/courseService.js  [15 chunk(s)]
+  + client/src/services/userService.js  [6 chunk(s)]
+  + client/src/utils/api.js  [1 chunk(s)]
+  + server/src/config/demoUsers.js  [1 chunk(s)]
+  + server/src/controllers/authController.js  [4 chunk(s)]
+  + server/src/controllers/courseController.js  [11 chunk(s)]
+  + server/src/controllers/examController.js  [4 chunk(s)]
+  + server/src/controllers/lessonController.js  [4 chunk(s)]
+  + server/src/controllers/userController.js  [6 chunk(s)]
+  + server/src/middleware/auth.js  [2 chunk(s)]
+  + server/src/middleware/errorHandler.js  [1 chunk(s)]
+  + server/src/models/Course.js  [1 chunk(s)]
+  + server/src/models/Exam.js  [1 chunk(s)]
+  + server/src/models/ExamAttempt.js  [1 chunk(s)]
+  + server/src/models/Lesson.js  [1 chunk(s)]
+  + server/src/models/Progress.js  [1 chunk(s)]
+  + server/src/models/User.js  [1 chunk(s)]
+  + server/src/routes/adminRoutes.js  [1 chunk(s)]
+  + server/src/routes/authRoutes.js  [1 chunk(s)]
+  + server/src/routes/courseRoutes.js  [1 chunk(s)]
+  + server/src/routes/instructorRoutes.js  [1 chunk(s)]
+  + server/src/routes/userRoutes.js  [1 chunk(s)]
+  + client/src/App.jsx  [1 chunk(s)]
+  + client/src/index.css  [1 chunk(s)]
+  + server/package.json  [1 chunk(s)]
+  + server/src/index.js  [3 chunk(s)]
+
+SKIPPED / UNCHANGED (1):
+  ~ .kilocode/.gitignore
+
+PHASE TIMINGS:
+  phase1_prepare: 0.285s
+  phase2_enrich: 28.587s
+  phase3_embed: 1.299s
+  phase4_write: 11.927s
+  total: 42.197s
+
+TOKENS: enrichment=48851in/15338out  embeddings=59803in
+
+========================================================================
+[2026-05-21 16:25:30 UTC]
+========================================================================
+REQUEST: ca85b146a946
+OPERATION: reindex (14 file(s) submitted)
+
+INDEXED (14):
+  + client/src/components/SkeletonCard.jsx  [1 chunk(s)]
+  + client/src/components/ThemeToggle.jsx  [1 chunk(s)]
+  + client/src/context/ThemeContext.jsx  [2 chunk(s)]
+  + client/src/hooks/useCountUp.js  [1 chunk(s)]
+  + client/src/App.jsx  [1 chunk(s)]
+  + client/src/components/CourseCard.jsx  [2 chunk(s)]
+  + client/src/components/Navbar.jsx  [1 chunk(s)]
+  + client/src/components/ProgressBar.jsx  [1 chunk(s)]
+  + client/src/index.css  [1 chunk(s)]
+  + client/src/pages/CourseViewer.jsx  [1 chunk(s)]
+  + client/src/pages/Courses.jsx  [1 chunk(s)]
+  + client/src/pages/Dashboard.jsx  [3 chunk(s)]
+  + client/src/pages/Home.jsx  [3 chunk(s)]
+  + client/tailwind.config.js  [1 chunk(s)]
+
+PHASE TIMINGS:
+  phase1_prepare: 0.083s
+  phase2_enrich: 14.996s
+  phase3_embed: 0.909s
+  phase4_write: 6.684s
+  total: 22.682s
+
+TOKENS: enrichment=18791in/3799out  embeddings=29451in
+
+========================================================================
+[2026-05-21 16:49:09 UTC]
+========================================================================
+REQUEST: 5413d3c18358
+OPERATION: reindex (21 file(s) submitted)
+
+INDEXED (20):
+  + client/src/pages/Bookmarks.jsx  [2 chunk(s)]
+  + client/src/services/notificationService.js  [4 chunk(s)]
+  + server/src/controllers/bookmarkController.js  [3 chunk(s)]
+  + server/src/controllers/notificationController.js  [5 chunk(s)]
+  + server/src/models/Notification.js  [1 chunk(s)]
+  + server/src/routes/notificationRoutes.js  [1 chunk(s)]
+  + client/src/App.jsx  [1 chunk(s)]
+  + client/src/components/Navbar.jsx  [2 chunk(s)]
+  + client/src/pages/Certificate.jsx  [3 chunk(s)]
+  + client/src/pages/Dashboard.jsx  [8 chunk(s)]
+  + client/src/services/courseService.js  [16 chunk(s)]
+  + client/src/services/userService.js  [10 chunk(s)]
+  + server/src/controllers/courseController.js  [12 chunk(s)]
+  + server/src/controllers/examController.js  [4 chunk(s)]
+  + server/src/controllers/userController.js  [9 chunk(s)]
+  + server/src/index.js  [3 chunk(s)]
+  + server/src/models/Lesson.js  [1 chunk(s)]
+  + server/src/models/User.js  [1 chunk(s)]
+  + server/src/routes/courseRoutes.js  [1 chunk(s)]
+  + server/src/routes/userRoutes.js  [1 chunk(s)]
+
+FAILED (1):
+  ✗ client/src/pages/CourseViewer.jsx
+
+PHASE TIMINGS:
+  phase1_prepare: 0.14s
+  phase2_enrich: 69.291s
+  phase3_embed: 8.513s
+  phase4_write: 6.412s
+  total: 84.374s
+
+TOKENS: enrichment=31570in/11455out  embeddings=41976in
+
+========================================================================
+[2026-05-21 17:04:49 UTC]
+========================================================================
+REQUEST: b4175c213ad8
+OPERATION: reindex (13 file(s) submitted)
+
+INDEXED (13):
+  + client/src/components/InstructorLayout.jsx  [1 chunk(s)]
+  + client/src/pages/CourseAnalytics.jsx  [4 chunk(s)]
+  + client/src/pages/InstructorCertificates.jsx  [2 chunk(s)]
+  + client/src/pages/InstructorCourses.jsx  [3 chunk(s)]
+  + client/src/pages/InstructorDashboard.jsx  [4 chunk(s)]
+  + client/src/pages/InstructorQuizzes.jsx  [2 chunk(s)]
+  + client/src/pages/InstructorStudents.jsx  [4 chunk(s)]
+  + client/src/services/instructorPanelService.js  [8 chunk(s)]
+  + server/src/controllers/instructorPanelController.js  [8 chunk(s)]
+  + server/src/routes/instructorPanelRoutes.js  [1 chunk(s)]
+  + client/src/App.jsx  [1 chunk(s)]
+  + client/src/components/Navbar.jsx  [2 chunk(s)]
+  + server/src/index.js  [3 chunk(s)]
+
+PHASE TIMINGS:
+  phase1_prepare: 0.096s
+  phase2_enrich: 14.887s
+  phase3_embed: 1.057s
+  phase4_write: 3.634s
+  total: 19.685s
+
+TOKENS: enrichment=25635in/6071out  embeddings=41978in
+
+========================================================================
+[2026-05-21 17:22:15 UTC]
+========================================================================
+REQUEST: f947dc91fc4b
+OPERATION: reindex (13 file(s) submitted)
+
+INDEXED (13):
+  + client/src/pages/AIChat.jsx  [4 chunk(s)]
+  + client/src/pages/AIHub.jsx  [1 chunk(s)]
+  + client/src/pages/AIQuizGenerator.jsx  [2 chunk(s)]
+  + client/src/pages/AIRecommendations.jsx  [3 chunk(s)]
+  + client/src/pages/AIRoadmap.jsx  [1 chunk(s)]
+  + client/src/pages/AISkillTracker.jsx  [6 chunk(s)]
+  + client/src/services/aiService.js  [5 chunk(s)]
+  + server/src/controllers/aiController.js  [11 chunk(s)]
+  + server/src/routes/aiRoutes.js  [1 chunk(s)]
+  + client/src/App.jsx  [1 chunk(s)]
+  + client/src/components/Navbar.jsx  [2 chunk(s)]
+  + client/src/pages/Dashboard.jsx  [8 chunk(s)]
+  + server/src/index.js  [3 chunk(s)]
+
+PHASE TIMINGS:
+  phase1_prepare: 0.1s
+  phase2_enrich: 10.814s
+  phase3_embed: 1.763s
+  phase4_write: 4.201s
+  total: 16.89s
+
+TOKENS: enrichment=26495in/6578out  embeddings=44119in

@@ -1,0 +1,16 @@
+# Dependencies
+client/node_modules/
+server/node_modules/
+
+# Lock files
+client/package-lock.json
+server/package-lock.json
+
+# Build outputs
+client/build/
+client/dist/
+server/dist/
+server/build/
+
+# Kilo
+.kilo*/

@@ -1,0 +1,45 @@
+# .kilocodeignore — Kilo CLI file access exclusions
+# Kilo cannot read, write, or list any path matched by these patterns.
+
+client/vite.config.js
+ecosystem.config.js
+client/postcss.config.js
+client/tailwind.config.js
+
+# ── Dependency directories ────────────────────────────────────────────────────
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# ── Build outputs ─────────────────────────────────────────────────────────────
+dist/
+build/
+client/dist/
+client/build/
+server/dist/
+server/build/
+coverage/
+.nyc_output/
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+logs/
+npm-debug.log*
+
+# ── OS / editor artefacts ─────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ── Version control internals ─────────────────────────────────────────────────
+.git/
+
+# ── Internal agent operating rules — never expose to the agent's file tools ──
+# Loaded by Kilo as system context at startup; blocking tool access here
+# prevents the agent from re-reading the file mid-session and copying its
+# contents into generated code, comments, or chat replies.
+.kilocode/rules/_internal.md
+AGENTS.md
+.kilocode/rules/security.md
+.kilocode/rules/architecture.md

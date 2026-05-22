@@ -1,0 +1,1620 @@
+
+========================================================================
+[2026-05-21 15:45:35 UTC]  CONTEXT ASSEMBLY OUTPUT | request_id=747bcf3d2bb1 intent=generation
+========================================================================
+--- context_summary ---
+Read client and server package.json files to confirm available dependencies: React 18, react-router-dom v6, axios, framer-motion, lucide-react, TailwindCSS on the frontend; Express, Mongoose, cors, dotenv on the backend. No bcrypt or JWT packages are present on the server — the code writer must install or implement alternatives (noting crypto for JWT or advising jsonwebtoken + bcryptjs addition).
+
+--- enriched_prompt (11074 chars) ---
+Build a complete, premium MERN online learning platform for programming and tech courses. All courses are free. Students earn certificates by passing final exams. Admins exclusively manage all content. Check @/client/package.json and @/server/package.json for available dependencies.
+
+---
+
+## BACKEND — Express + Mongoose
+
+### Models
+
+**User**
+- `name`, `email` (unique), `password` (bcrypt-hashed), `role` (`student` | `admin`)
+- `avatar` (string, optional), `bio` (optional — used for instructor profiles when role is admin)
+- `enrolledCourses`: [{ courseId, enrolledAt, lastAccessedAt }]
+- `certificates`: [{ courseId, issuedAt, certificateId (uuid) }]
+
+**Course**
+- `title`, `slug` (unique), `description`, `thumbnail` (URL string), `category` (e.g. "Web Dev", "Python", "Data Science"), `tags` ([string])
+- `instructor`: ref → User (admin)
+- `status`: `draft` | `published`
+- `level`: `beginner` | `intermediate` | `advanced`
+- `estimatedDuration` (minutes)
+- `sections`: [{ title, order, lessons: [ref → Lesson] }]
+- `finalExam`: ref → Exam
+- `enrolledCount` (number)
+- `createdAt`, `updatedAt`
+
+**Lesson**
+- `title`, `description`, `order`
+- `videoUrl` (string — YouTube embed or direct URL)
+- `resources`: [{ name, url, type: `pdf`|`link`|`zip` }]
+- `quiz`: { questions: [{ question, options: [string], correctIndex, explanation }] }
+- `codingChallenge`: { prompt, starterCode, language, solution }
+- `course`: ref → Course
+- `duration` (minutes)
+
+**Exam** (Final Exam per course)
+- `course`: ref → Course
+- `questions`: [{ question, options: [string], correctIndex, explanation }]
+- `passingScore` (number, default 70 — percentage)
+- `timeLimit` (minutes)
+
+**ExamAttempt**
+- `user`: ref → User, `course`: ref → Course, `exam`: ref → Exam
+- `answers`: [{ questionIndex, selectedIndex }]
+- `score` (percentage), `passed` (boolean)
+- `attemptedAt`
+
+**Progress**
+- `user`: ref → User, `course`: ref → Course
+- `completedLessons`: [{ lessonId, completedAt }]
+- `quizResults`: [{ lessonId, score, attemptedAt }]
+- `codingResults`: [{ lessonId, passed, submittedAt }]
+- `overallPercent` (computed)
+
+### Routes (prefix `/api`)
+
+- `POST /auth/register` — register student (role defaults to `student`); hash password with bcrypt (10 rounds); sign JWT with `process.env.JWT_SECRET`
+- `POST /auth/login` — verify credentials, return JWT + user object (no password)
+- `GET /auth/me` — protected; return current user
+
+- `GET /courses` — list published courses; supports `?category=&level=&search=` query params
+- `GET /courses/:slug` — course detail with populated sections/lessons (no correct answers exposed)
+- `POST /courses` — admin only; create course
+- `PUT /courses/:id` — admin only; update course
+- `DELETE /courses/:id` — admin only
+- `POST /courses/:id/publish` — admin only; set status to published
+
+- `POST /courses/:id/enroll` — authenticated student; enroll (add to user.enrolledCourses + increment enrolledCount)
+- `GET /courses/:id/progress` — authenticated; return Progress doc for user+course
+- `POST /courses/:id/lessons/:lessonId/complete` — mark lesson complete; recalculate overallPercent
+- `POST /courses/:id/lessons/:lessonId/quiz` — submit quiz answers; store score
+- `POST /courses/:id/lessons/:lessonId/challenge` — submit coding challenge result
+
+- `POST /courses/:id/exam/attempt` — submit final exam; calculate score; if passed → auto-issue certificate (generate uuid, push to user.certificates); return { passed, score, certificate? }
+- `GET /courses/:id/exam/attempts` — user's attempts for this course
+
+- `GET /instructors` — list all admin users with public profile fields (name, bio, avatar, courses they authored)
+- `GET /instructors/:id` — instructor profile + their published courses
+
+- `GET /admin/courses` — admin; all courses (any status)
+- `GET /admin/users` — admin; list all users
+
+- `GET /users/me/dashboard` — authenticated; return enrolled courses with progress %, recent activity, certificates
+- `GET /users/me/certificates/:certificateId` — certificate details for download/share
+
+### Seed Script (`/server/src/seed.js`)
+Create these users (bcrypt-hash passwords, 10 rounds):
+- Admin: `admin@learnify.com` / `Admin@1234`, role: `admin`, name: "Alex Morgan", bio: "Full-stack developer and educator with 10+ years of experience."
+- Student: `student@learnify.com` / `Student@1234`, role: `student`, name: "Jamie Lee"
+
+Seed 3 published courses (with at least 2 sections each, 2–3 lessons per section, a final exam with 5 questions, passingScore 70):
+1. "JavaScript Fundamentals" — beginner, category "Web Dev"
+2. "Python for Data Science" — intermediate, category "Data Science"
+3. "React & Modern Frontend" — intermediate, category "Web Dev"
+
+---
+
+## FRONTEND — React + Vite + TailwindCSS
+
+### Design System
+Dark-on-light premium educational aesthetic:
+- Background: `#F8FAFC`, Surface cards: `#FFFFFF`, Primary accent: `#6366F1` (indigo-500), Secondary: `#8B5CF6` (violet-500)
+- Text primary: `#0F172A`, Text secondary: `#64748B`
+- Success: `#10B981`, Warning: `#F59E0B`, Error: `#EF4444`
+- Font: system-ui / Inter-like stack; headings bold 700–800 weight
+- Cards: `rounded-2xl`, `shadow-sm` with hover `shadow-md` transition
+- Buttons: primary = indigo gradient (`from-indigo-500 to-violet-500`), rounded-xl, font-semibold
+- Progress bars: indigo fill on slate-100 track, rounded-full
+- Sidebar (course viewer): 280px, #1E293B background, white text
+
+### Pages & Components
+
+**`/auth`** — Single tabbed Auth page (Login / Register tabs)
+- Login tab: email + password fields; on submit POST `/api/auth/login`; store JWT in localStorage
+- Register tab: name + email + password + confirm password
+- Demo credentials hint below Login form (read-only, styled info box):
+  > **Admin:** admin@learnify.com / Admin@1234
+  > **Student:** student@learnify.com / Student@1234
+- "Fill demo credentials" buttons for each — populate form with exact values
+- Redirect to `/dashboard` on success
+
+**`/`** — Landing / Home
+- Hero: large headline "Learn Programming. Land Your Dream Job.", sub-copy, two CTAs: "Browse Courses" → `/courses`, "Get Started Free" → `/auth`
+- Featured courses section (3 cards)
+- Stats bar: e.g. "500+ Students", "20+ Courses", "Free Forever", "Certificates Included"
+- Instructor highlights strip
+- Footer
+
+**`/courses`** — Course Catalogue
+- Search bar + filter chips: category (All / Web Dev / Python / Data Science) + level filter
+- Grid of CourseCard components: thumbnail, title, instructor name, level badge, estimated duration, "Enroll" or "Continue" CTA
+- Empty state with friendly message
+
+**`/courses/:slug`** — Course Detail
+- Hero with thumbnail, title, instructor, stats (enrolled count, lessons count, duration, level)
+- Tabs: Overview | Curriculum | Instructor
+- Curriculum tab: collapsible sections listing lessons with lock icons for non-enrolled users
+- Sticky enroll/continue banner
+- Final exam section (locked until all lessons complete)
+
+**`/learn/:slug`** — Course Viewer (protected, enrolled only)
+- Left sidebar (280px, dark #1E293B): course sections + lessons list; active lesson highlighted in indigo; completion checkmarks
+- Main content area: video player (iframe embed), lesson description, resources list (download links), quiz section, coding challenge section
+- Right-side: lesson navigation (prev/next), progress indicator
+- Quiz: multiple-choice, show score + explanations on submit
+- Coding challenge: textarea for code input, submit button, pass/fail feedback
+
+**`/exam/:courseId`** — Final Exam (protected, enrolled + all lessons complete)
+- Timer display (countdown from timeLimit)
+- Paginated or scrollable question list with radio options
+- Submit → results screen showing score, pass/fail, and if passed: certificate download button
+
+**`/dashboard`** — Student Dashboard (protected)
+- Greeting with user name
+- Stats row: Enrolled courses, Completed courses, Certificates earned
+- Enrolled Courses section: cards with progress bar (% complete), last accessed date, "Continue" button
+- Recent Activity feed (latest lesson completions / quiz attempts)
+- Certificates section: certificate cards with course name, issued date, download & share buttons
+
+**`/admin`** — Admin Dashboard (admin only)
+- Stats: total courses, total students, total exams passed
+- Quick actions: "New Course", "Manage Courses", "View Users"
+- Published vs Draft courses table
+
+**`/admin/courses/new`** and **`/admin/courses/:id/edit`** — Course Builder
+- Multi-step form or tabbed editor: Basic Info | Sections & Lessons | Final Exam | Publish
+- Basic Info: title, description, category, level, thumbnail URL, estimated duration
+- Sections & Lessons: add/remove/reorder sections; within each section add lessons (title, videoUrl, resources, quiz questions, coding challenge)
+- Final Exam: add/remove questions, set passingScore, timeLimit
+- Publish toggle
+
+**`/instructors`** — Instructors listing page
+- Grid of instructor cards: avatar (initials fallback), name, bio excerpt, course count
+
+**`/instructors/:id`** — Instructor Profile
+- Full bio, avatar, stats, grid of their published courses
+
+**`/certificate/:certificateId`** — Public certificate page
+- Printable/shareable certificate layout: student name, course name, issued date, unique certificate ID
+- "Download as PDF" button (use browser print / `window.print()`)
+- Certificate has decorative border, indigo accent, platform logo text "Learnify"
+
+### Global Components
+- **Navbar**: logo "Learnify" (indigo), nav links (Courses, Instructors), auth buttons or user avatar dropdown (Dashboard, Sign Out)
+- **ProtectedRoute**: redirect to `/auth` if no JWT
+- **AdminRoute**: redirect to `/dashboard` if not admin role
+- **CourseCard**: reusable card with thumbnail, badges, progress bar (if enrolled)
+- **ProgressBar**: animated indigo fill
+- **AuthContext**: wrap app; expose `user`, `login()`, `logout()`, `loading`
+- **API utility** (`/client/src/utils/api.js`): axios instance with `baseURL = /api`, auto-attach Authorization header from localStorage JWT
+
+### Routing (react-router-dom v6)
+```
+/ → Home
+/auth → Auth (redirect if already logged in)
+/courses → Catalogue
+/courses/:slug → Detail
+/learn/:slug → Viewer (ProtectedRoute)
+/exam/:courseId → Exam (ProtectedRoute)
+/dashboard → Dashboard (ProtectedRoute)
+/admin → AdminDashboard (AdminRoute)
+/admin/courses/new → CourseBuilder (AdminRoute)
+/admin/courses/:id/edit → CourseBuilder (AdminRoute)
+/instructors → Instructors
+/instructors/:id → InstructorProfile
+/certificate/:certificateId → Certificate (public)
+```
+
+---
+
+## Acceptance Criteria
+- `POST /api/auth/login` with `{ email: "admin@learnify.com", password: "Admin@1234" }` returns a valid JWT
+- `POST /api/auth/login` with `{ email: "student@learnify.com", password: "Student@1234" }` returns a valid JWT
+- Seeded credentials shown exactly on `/auth` login tab demo hint and fill buttons
+- Admin user can create/edit/publish courses; student cannot access admin routes
+- Student can enroll, complete lessons, take final exam, and receive certificate
+- Certificate page at `/certificate/:certificateId` is publicly accessible
+
+
+========================================================================
+[2026-05-21 15:45:35 UTC]  PASSING TO EXECUTION ORCHESTRATOR | request_id=747bcf3d2bb1 intent=generation
+========================================================================
+Build a complete, premium MERN online learning platform for programming and tech courses. All courses are free. Students earn certificates by passing final exams. Admins exclusively manage all content. Check @/client/package.json and @/server/package.json for available dependencies.
+
+---
+
+## BACKEND — Express + Mongoose
+
+### Models
+
+**User**
+- `name`, `email` (unique), `password` (bcrypt-hashed), `role` (`student` | `admin`)
+- `avatar` (string, optional), `bio` (optional — used for instructor profiles when role is admin)
+- `enrolledCourses`: [{ courseId, enrolledAt, lastAccessedAt }]
+- `certificates`: [{ courseId, issuedAt, certificateId (uuid) }]
+
+**Course**
+- `title`, `slug` (unique), `description`, `thumbnail` (URL string), `category` (e.g. "Web Dev", "Python", "Data Science"), `tags` ([string])
+- `instructor`: ref → User (admin)
+- `status`: `draft` | `published`
+- `level`: `beginner` | `intermediate` | `advanced`
+- `estimatedDuration` (minutes)
+- `sections`: [{ title, order, lessons: [ref → Lesson] }]
+- `finalExam`: ref → Exam
+- `enrolledCount` (number)
+- `createdAt`, `updatedAt`
+
+**Lesson**
+- `title`, `description`, `order`
+- `videoUrl` (string — YouTube embed or direct URL)
+- `resources`: [{ name, url, type: `pdf`|`link`|`zip` }]
+- `quiz`: { questions: [{ question, options: [string], correctIndex, explanation }] }
+- `codingChallenge`: { prompt, starterCode, language, solution }
+- `course`: ref → Course
+- `duration` (minutes)
+
+**Exam** (Final Exam per course)
+- `course`: ref → Course
+- `questions`: [{ question, options: [string], correctIndex, explanation }]
+- `passingScore` (number, default 70 — percentage)
+- `timeLimit` (minutes)
+
+**ExamAttempt**
+- `user`: ref → User, `course`: ref → Course, `exam`: ref → Exam
+- `answers`: [{ questionIndex, selectedIndex }]
+- `score` (percentage), `passed` (boolean)
+- `attemptedAt`
+
+**Progress**
+- `user`: ref → User, `course`: ref → Course
+- `completedLessons`: [{ lessonId, completedAt }]
+- `quizResults`: [{ lessonId, score, attemptedAt }]
+- `codingResults`: [{ lessonId, passed, submittedAt }]
+- `overallPercent` (computed)
+
+### Routes (prefix `/api`)
+
+- `POST /auth/register` — register student (role defaults to `student`); hash password with bcrypt (10 rounds); sign JWT with `process.env.JWT_SECRET`
+- `POST /auth/login` — verify credentials, return JWT + user object (no password)
+- `GET /auth/me` — protected; return current user
+
+- `GET /courses` — list published courses; supports `?category=&level=&search=` query params
+- `GET /courses/:slug` — course detail with populated sections/lessons (no correct answers exposed)
+- `POST /courses` — admin only; create course
+- `PUT /courses/:id` — admin only; update course
+- `DELETE /courses/:id` — admin only
+- `POST /courses/:id/publish` — admin only; set status to published
+
+- `POST /courses/:id/enroll` — authenticated student; enroll (add to user.enrolledCourses + increment enrolledCount)
+- `GET /courses/:id/progress` — authenticated; return Progress doc for user+course
+- `POST /courses/:id/lessons/:lessonId/complete` — mark lesson complete; recalculate overallPercent
+- `POST /courses/:id/lessons/:lessonId/quiz` — submit quiz answers; store score
+- `POST /courses/:id/lessons/:lessonId/challenge` — submit coding challenge result
+
+- `POST /courses/:id/exam/attempt` — submit final exam; calculate score; if passed → auto-issue certificate (generate uuid, push to user.certificates); return { passed, score, certificate? }
+- `GET /courses/:id/exam/attempts` — user's attempts for this course
+
+- `GET /instructors` — list all admin users with public profile fields (name, bio, avatar, courses they authored)
+- `GET /instructors/:id` — instructor profile + their published courses
+
+- `GET /admin/courses` — admin; all courses (any status)
+- `GET /admin/users` — admin; list all users
+
+- `GET /users/me/dashboard` — authenticated; return enrolled courses with progress %, recent activity, certificates
+- `GET /users/me/certificates/:certificateId` — certificate details for download/share
+
+### Seed Script (`/server/src/seed.js`)
+Create these users (bcrypt-hash passwords, 10 rounds):
+- Admin: `admin@learnify.com` / `Admin@1234`, role: `admin`, name: "Alex Morgan", bio: "Full-stack developer and educator with 10+ years of experience."
+- Student: `student@learnify.com` / `Student@1234`, role: `student`, name: "Jamie Lee"
+
+Seed 3 published courses (with at least 2 sections each, 2–3 lessons per section, a final exam with 5 questions, passingScore 70):
+1. "JavaScript Fundamentals" — beginner, category "Web Dev"
+2. "Python for Data Science" — intermediate, category "Data Science"
+3. "React & Modern Frontend" — intermediate, category "Web Dev"
+
+---
+
+## FRONTEND — React + Vite + TailwindCSS
+
+### Design System
+Dark-on-light premium educational aesthetic:
+- Background: `#F8FAFC`, Surface cards: `#FFFFFF`, Primary accent: `#6366F1` (indigo-500), Secondary: `#8B5CF6` (violet-500)
+- Text primary: `#0F172A`, Text secondary: `#64748B`
+- Success: `#10B981`, Warning: `#F59E0B`, Error: `#EF4444`
+- Font: system-ui / Inter-like stack; headings bold 700–800 weight
+- Cards: `rounded-2xl`, `shadow-sm` with hover `shadow-md` transition
+- Buttons: primary = indigo gradient (`from-indigo-500 to-violet-500`), rounded-xl, font-semibold
+- Progress bars: indigo fill on slate-100 track, rounded-full
+- Sidebar (course viewer): 280px, #1E293B background, white text
+
+### Pages & Components
+
+**`/auth`** — Single tabbed Auth page (Login / Register tabs)
+- Login tab: email + password fields; on submit POST `/api/auth/login`; store JWT in localStorage
+- Register tab: name + email + password + confirm password
+- Demo credentials hint below Login form (read-only, styled info box):
+  > **Admin:** admin@learnify.com / Admin@1234
+  > **Student:** student@learnify.com / Student@1234
+- "Fill demo credentials" buttons for each — populate form with exact values
+- Redirect to `/dashboard` on success
+
+**`/`** — Landing / Home
+- Hero: large headline "Learn Programming. Land Your Dream Job.", sub-copy, two CTAs: "Browse Courses" → `/courses`, "Get Started Free" → `/auth`
+- Featured courses section (3 cards)
+- Stats bar: e.g. "500+ Students", "20+ Courses", "Free Forever", "Certificates Included"
+- Instructor highlights strip
+- Footer
+
+**`/courses`** — Course Catalogue
+- Search bar + filter chips: category (All / Web Dev / Python / Data Science) + level filter
+- Grid of CourseCard components: thumbnail, title, instructor name, level badge, estimated duration, "Enroll" or "Continue" CTA
+- Empty state with friendly message
+
+**`/courses/:slug`** — Course Detail
+- Hero with thumbnail, title, instructor, stats (enrolled count, lessons count, duration, level)
+- Tabs: Overview | Curriculum | Instructor
+- Curriculum tab: collapsible sections listing lessons with lock icons for non-enrolled users
+- Sticky enroll/continue banner
+- Final exam section (locked until all lessons complete)
+
+**`/learn/:slug`** — Course Viewer (protected, enrolled only)
+- Left sidebar (280px, dark #1E293B): course sections + lessons list; active lesson highlighted in indigo; completion checkmarks
+- Main content area: video player (iframe embed), lesson description, resources list (download links), quiz section, coding challenge section
+- Right-side: lesson navigation (prev/next), progress indicator
+- Quiz: multiple-choice, show score + explanations on submit
+- Coding challenge: textarea for code input, submit button, pass/fail feedback
+
+**`/exam/:courseId`** — Final Exam (protected, enrolled + all lessons complete)
+- Timer display (countdown from timeLimit)
+- Paginated or scrollable question list with radio options
+- Submit → results screen showing score, pass/fail, and if passed: certificate download button
+
+**`/dashboard`** — Student Dashboard (protected)
+- Greeting with user name
+- Stats row: Enrolled courses, Completed courses, Certificates earned
+- Enrolled Courses section: cards with progress bar (% complete), last accessed date, "Continue" button
+- Recent Activity feed (latest lesson completions / quiz attempts)
+- Certificates section: certificate cards with course name, issued date, download & share buttons
+
+**`/admin`** — Admin Dashboard (admin only)
+- Stats: total courses, total students, total exams passed
+- Quick actions: "New Course", "Manage Courses", "View Users"
+- Published vs Draft courses table
+
+**`/admin/courses/new`** and **`/admin/courses/:id/edit`** — Course Builder
+- Multi-step form or tabbed editor: Basic Info | Sections & Lessons | Final Exam | Publish
+- Basic Info: title, description, category, level, thumbnail URL, estimated duration
+- Sections & Lessons: add/remove/reorder sections; within each section add lessons (title, videoUrl, resources, quiz questions, coding challenge)
+- Final Exam: add/remove questions, set passingScore, timeLimit
+- Publish toggle
+
+**`/instructors`** — Instructors listing page
+- Grid of instructor cards: avatar (initials fallback), name, bio excerpt, course count
+
+**`/instructors/:id`** — Instructor Profile
+- Full bio, avatar, stats, grid of their published courses
+
+**`/certificate/:certificateId`** — Public certificate page
+- Printable/shareable certificate layout: student name, course name, issued date, unique certificate ID
+- "Download as PDF" button (use browser print / `window.print()`)
+- Certificate has decorative border, indigo accent, platform logo text "Learnify"
+
+### Global Components
+- **Navbar**: logo "Learnify" (indigo), nav links (Courses, Instructors), auth buttons or user avatar dropdown (Dashboard, Sign Out)
+- **ProtectedRoute**: redirect to `/auth` if no JWT
+- **AdminRoute**: redirect to `/dashboard` if not admin role
+- **CourseCard**: reusable card with thumbnail, badges, progress bar (if enrolled)
+- **ProgressBar**: animated indigo fill
+- **AuthContext**: wrap app; expose `user`, `login()`, `logout()`, `loading`
+- **API utility** (`/client/src/utils/api.js`): axios instance with `baseURL = /api`, auto-attach Authorization header from localStorage JWT
+
+### Routing (react-router-dom v6)
+```
+/ → Home
+/auth → Auth (redirect if already logged in)
+/courses → Catalogue
+/courses/:slug → Detail
+/learn/:slug → Viewer (ProtectedRoute)
+/exam/:courseId → Exam (ProtectedRoute)
+/dashboard → Dashboard (ProtectedRoute)
+/admin → AdminDashboard (AdminRoute)
+/admin/courses/new → CourseBuilder (AdminRoute)
+/admin/courses/:id/edit → CourseBuilder (AdminRoute)
+/instructors → Instructors
+/instructors/:id → InstructorProfile
+/certificate/:certificateId → Certificate (public)
+```
+
+---
+
+## Acceptance Criteria
+- `POST /api/auth/login` with `{ email: "admin@learnify.com", password: "Admin@1234" }` returns a valid JWT
+- `POST /api/auth/login` with `{ email: "student@learnify.com", password: "Student@1234" }` returns a valid JWT
+- Seeded credentials shown exactly on `/auth` login tab demo hint and fill buttons
+- Admin user can create/edit/publish courses; student cannot access admin routes
+- Student can enroll, complete lessons, take final exam, and receive certificate
+- Certificate page at `/certificate/:certificateId` is publicly accessible
+
+
+========================================================================
+[2026-05-21 16:07:59 UTC]  CONTEXT ASSEMBLY OUTPUT | request_id=4a1997f106ae intent=db_operation
+========================================================================
+--- context_summary ---
+Inspected existing collections (users, courses, lessons, exams, examattempts, progresses), confirmed User model schema fields and bcrypt hashing (saltRounds=10), confirmed existing demo credentials (admin@learnify.com/Admin@1234, student@learnify.com/Student@1234), and reviewed the seedDemoUsers pattern in server/src/index.js for upsert logic.
+
+--- enriched_prompt (7017 chars) ---
+Seed the MongoDB database with a comprehensive, realistic dataset for the Learnify online learning platform. Do NOT wipe existing admin/student accounts (admin@learnify.com / Admin@1234, student@learnify.com / Student@1234) — use upsert logic for users.
+
+Existing collections: `users`, `courses`, `lessons`, `exams`, `examattempts`, `progresses`.
+
+---
+
+## MODELS (confirmed from codebase)
+
+**User** (`@/server/src/models/User.js`): name, email, password (bcrypt, saltRounds=10), role ('student'|'admin'), avatar, bio, enrolledCourses [{courseId, enrolledAt, lastAccessedAt}], certificates [{courseId, issuedAt, certificateId (UUID)}], timestamps.
+
+**Course**: title, description, category, level, thumbnail, instructor (ref User), lessons (array of ObjectId refs), tags, published (bool), etc. — inspect `@/server/src/models/Course.js` for exact fields.
+
+**Lesson**: title, content, videoUrl, resources, quizQuestions, codingChallenges, etc. — inspect `@/server/src/models/Lesson.js`.
+
+**Exam**: courseId, questions array, passingScore, timeLimit — inspect `@/server/src/models/Exam.js`.
+
+**ExamAttempt**: userId, courseId, examId, answers, score, passed, completedAt — inspect `@/server/src/models/ExamAttempt.js`.
+
+**Progress**: userId, courseId, completedLessons [], quizScores [{lessonId, score}], codingResults — inspect `@/server/src/models/Progress.js`.
+
+---
+
+## SEED REQUIREMENTS
+
+### 1. Instructor Accounts (6 admins/instructors)
+Create 6 instructor users with role `admin` and realistic bios:
+| Name | Email | Password |
+|---|---|---|
+| Sarah Chen | sarah.chen@learnify.com | Instructor@1234 |
+| Marcus Williams | marcus.w@learnify.com | Instructor@1234 |
+| Priya Patel | priya.patel@learnify.com | Instructor@1234 |
+| James O'Brien | james.obrien@learnify.com | Instructor@1234 |
+| Aiko Tanaka | aiko.tanaka@learnify.com | Instructor@1234 |
+| Dmitri Volkov | dmitri.volkov@learnify.com | Instructor@1234 |
+
+Give each a detailed bio (2–3 sentences, relevant to their teaching domain).
+
+### 2. Student Accounts (10 students)
+Create 10 students with realistic names and emails, all with password `Student@1234`, bcrypt-hashed. Example names: Jordan Rivera, Mia Thompson, Carlos Mendez, Fatima Al-Hassan, Noah Kim, Lily Zhang, Ethan Okafor, Sofia Rossi, Liam Nguyen, Amara Diallo.
+
+### 3. Courses (15 courses across 5 categories)
+
+**Web Development (3 courses)**
+- "Full-Stack JavaScript: From Zero to Hero" — Advanced, instructor: Sarah Chen, 6 lessons
+- "Modern CSS & Tailwind Mastery" — Beginner, instructor: Sarah Chen, 5 lessons
+- "Node.js & REST API Design" — Intermediate, instructor: Marcus Williams, 5 lessons
+
+**Artificial Intelligence & ML (3 courses)**
+- "Machine Learning Fundamentals with Python" — Intermediate, instructor: Priya Patel, 6 lessons
+- "Deep Learning & Neural Networks" — Advanced, instructor: Priya Patel, 5 lessons
+- "Natural Language Processing Essentials" — Intermediate, instructor: Aiko Tanaka, 5 lessons
+
+**Cybersecurity (3 courses)**
+- "Ethical Hacking & Penetration Testing" — Advanced, instructor: James O'Brien, 6 lessons
+- "Network Security Fundamentals" — Beginner, instructor: James O'Brien, 5 lessons
+- "Web Application Security & OWASP Top 10" — Intermediate, instructor: Dmitri Volkov, 5 lessons
+
+**Mobile App Development (3 courses)**
+- "React Native: Build iOS & Android Apps" — Intermediate, instructor: Sarah Chen, 6 lessons
+- "Flutter & Dart from Scratch" — Beginner, instructor: Marcus Williams, 5 lessons
+- "Advanced iOS Development with Swift" — Advanced, instructor: Aiko Tanaka, 5 lessons
+
+**Data Science (3 courses)**
+- "Python for Data Science & Pandas" — Beginner, instructor: Priya Patel, 5 lessons
+- "Data Visualization with D3.js & Plotly" — Intermediate, instructor: Dmitri Volkov, 5 lessons
+- "Big Data Engineering with Spark" — Advanced, instructor: Dmitri Volkov, 5 lessons
+
+For each course: realistic description (2–3 sentences), relevant tags array (4–5 tags), published: true, thumbnail URL (use plausible Unsplash-style URLs or placeholder strings like "https://images.unsplash.com/photo-...").
+
+### 4. Lessons
+For each course, create the appropriate number of lessons. Each lesson must have:
+- title (realistic, e.g. "Setting Up Your Dev Environment")
+- content (2–3 paragraph description of what's covered)
+- videoUrl (placeholder like "https://learnify-cdn.com/videos/course-slug/lesson-1.mp4")
+- resources: at least 2 downloadable resource objects [{title, url, type}]
+- quizQuestions: 3–5 multiple-choice questions [{question, options[4], correctIndex, explanation}]
+- codingChallenge (at least 1 per lesson): {title, description, starterCode, solution, language}
+
+### 5. Exams
+Create 1 final exam per course (15 total):
+- 10 questions each, multiple-choice, relevant to the course topic
+- passingScore: 70, timeLimit: 30 (minutes)
+
+### 6. Student Enrollments & Progress
+Enroll students realistically (each student in 3–5 courses, spread across categories):
+- For each enrollment: set enrolledAt (random date within last 6 months), lastAccessedAt (recent)
+- Create a Progress document: completedLessons (50–100% of lessons), quizScores for completed lessons (scores 60–100)
+
+### 7. Passed Exam Attempts & Certificates
+For 60–70% of the enrolled courses (where progress ≥ 80% complete):
+- Create an ExamAttempt with score 70–98, passed: true, completedAt set
+- Add a certificate entry to the user's `certificates` array: {courseId, issuedAt, certificateId: uuid()}
+
+### 8. Failed Exam Attempts
+For ~20% of enrollments, create a failed ExamAttempt (score 40–65, passed: false) with no certificate issued.
+
+---
+
+## IMPLEMENTATION NOTES
+- Write this as a standalone seed script at `@/server/src/scripts/seedFullData.js` that can be run with `node` (use ES module syntax matching the rest of the server).
+- Import and reuse existing Mongoose models from `@/server/src/models/`.
+- Connect to MongoDB using the same MONGODB_URI from dotenv / `@/server/src/config/db.js`.
+- Hash all passwords with bcrypt (saltRounds=10).
+- Use `upsert: true` for instructor/student users so re-runs are idempotent.
+- For courses, lessons, exams — drop and re-seed on each run to keep data fresh (but preserve users).
+- Generate UUIDs for certificateId using the `crypto.randomUUID()` built-in (Node 16+).
+- Log progress: "✓ Seeded X instructors", "✓ Seeded X students", "✓ Seeded 15 courses with Y total lessons", etc.
+- Also update `@/server/src/index.js` to either auto-run this seed on startup (behind a SEED_DEMO_DATA=true env flag) or add a comment pointing to the script with the run command.
+- Add the run command as an npm script in `@/server/package.json`: `"seed": "node src/scripts/seedFullData.js"`
+
+All passwords must be bcrypt-hashed at saltRounds=10. The seeded instructor credentials (e.g. sarah.chen@learnify.com / Instructor@1234) must work end-to-end with the existing login route (POST /api/auth/login) which uses bcrypt.compare. Verify field names match User model exactly (email, password, role, name, bio, enrolledCourses, certificates).
+
+========================================================================
+[2026-05-21 16:07:59 UTC]  PASSING TO DB AGENT | request_id=4a1997f106ae
+========================================================================
+Seed the MongoDB database with a comprehensive, realistic dataset for the Learnify online learning platform. Do NOT wipe existing admin/student accounts (admin@learnify.com / Admin@1234, student@learnify.com / Student@1234) — use upsert logic for users.
+
+Existing collections: `users`, `courses`, `lessons`, `exams`, `examattempts`, `progresses`.
+
+---
+
+## MODELS (confirmed from codebase)
+
+**User** (`@/server/src/models/User.js`): name, email, password (bcrypt, saltRounds=10), role ('student'|'admin'), avatar, bio, enrolledCourses [{courseId, enrolledAt, lastAccessedAt}], certificates [{courseId, issuedAt, certificateId (UUID)}], timestamps.
+
+**Course**: title, description, category, level, thumbnail, instructor (ref User), lessons (array of ObjectId refs), tags, published (bool), etc. — inspect `@/server/src/models/Course.js` for exact fields.
+
+**Lesson**: title, content, videoUrl, resources, quizQuestions, codingChallenges, etc. — inspect `@/server/src/models/Lesson.js`.
+
+**Exam**: courseId, questions array, passingScore, timeLimit — inspect `@/server/src/models/Exam.js`.
+
+**ExamAttempt**: userId, courseId, examId, answers, score, passed, completedAt — inspect `@/server/src/models/ExamAttempt.js`.
+
+**Progress**: userId, courseId, completedLessons [], quizScores [{lessonId, score}], codingResults — inspect `@/server/src/models/Progress.js`.
+
+---
+
+## SEED REQUIREMENTS
+
+### 1. Instructor Accounts (6 admins/instructors)
+Create 6 instructor users with role `admin` and realistic bios:
+| Name | Email | Password |
+|---|---|---|
+| Sarah Chen | sarah.chen@learnify.com | Instructor@1234 |
+| Marcus Williams | marcus.w@learnify.com | Instructor@1234 |
+| Priya Patel | priya.patel@learnify.com | Instructor@1234 |
+| James O'Brien | james.obrien@learnify.com | Instructor@1234 |
+| Aiko Tanaka | aiko.tanaka@learnify.com | Instructor@1234 |
+| Dmitri Volkov | dmitri.volkov@learnify.com | Instructor@1234 |
+
+Give each a detailed bio (2–3 sentences, relevant to their teaching domain).
+
+### 2. Student Accounts (10 students)
+Create 10 students with realistic names and emails, all with password `Student@1234`, bcrypt-hashed. Example names: Jordan Rivera, Mia Thompson, Carlos Mendez, Fatima Al-Hassan, Noah Kim, Lily Zhang, Ethan Okafor, Sofia Rossi, Liam Nguyen, Amara Diallo.
+
+### 3. Courses (15 courses across 5 categories)
+
+**Web Development (3 courses)**
+- "Full-Stack JavaScript: From Zero to Hero" — Advanced, instructor: Sarah Chen, 6 lessons
+- "Modern CSS & Tailwind Mastery" — Beginner, instructor: Sarah Chen, 5 lessons
+- "Node.js & REST API Design" — Intermediate, instructor: Marcus Williams, 5 lessons
+
+**Artificial Intelligence & ML (3 courses)**
+- "Machine Learning Fundamentals with Python" — Intermediate, instructor: Priya Patel, 6 lessons
+- "Deep Learning & Neural Networks" — Advanced, instructor: Priya Patel, 5 lessons
+- "Natural Language Processing Essentials" — Intermediate, instructor: Aiko Tanaka, 5 lessons
+
+**Cybersecurity (3 courses)**
+- "Ethical Hacking & Penetration Testing" — Advanced, instructor: James O'Brien, 6 lessons
+- "Network Security Fundamentals" — Beginner, instructor: James O'Brien, 5 lessons
+- "Web Application Security & OWASP Top 10" — Intermediate, instructor: Dmitri Volkov, 5 lessons
+
+**Mobile App Development (3 courses)**
+- "React Native: Build iOS & Android Apps" — Intermediate, instructor: Sarah Chen, 6 lessons
+- "Flutter & Dart from Scratch" — Beginner, instructor: Marcus Williams, 5 lessons
+- "Advanced iOS Development with Swift" — Advanced, instructor: Aiko Tanaka, 5 lessons
+
+**Data Science (3 courses)**
+- "Python for Data Science & Pandas" — Beginner, instructor: Priya Patel, 5 lessons
+- "Data Visualization with D3.js & Plotly" — Intermediate, instructor: Dmitri Volkov, 5 lessons
+- "Big Data Engineering with Spark" — Advanced, instructor: Dmitri Volkov, 5 lessons
+
+For each course: realistic description (2–3 sentences), relevant tags array (4–5 tags), published: true, thumbnail URL (use plausible Unsplash-style URLs or placeholder strings like "https://images.unsplash.com/photo-...").
+
+### 4. Lessons
+For each course, create the appropriate number of lessons. Each lesson must have:
+- title (realistic, e.g. "Setting Up Your Dev Environment")
+- content (2–3 paragraph description of what's covered)
+- videoUrl (placeholder like "https://learnify-cdn.com/videos/course-slug/lesson-1.mp4")
+- resources: at least 2 downloadable resource objects [{title, url, type}]
+- quizQuestions: 3–5 multiple-choice questions [{question, options[4], correctIndex, explanation}]
+- codingChallenge (at least 1 per lesson): {title, description, starterCode, solution, language}
+
+### 5. Exams
+Create 1 final exam per course (15 total):
+- 10 questions each, multiple-choice, relevant to the course topic
+- passingScore: 70, timeLimit: 30 (minutes)
+
+### 6. Student Enrollments & Progress
+Enroll students realistically (each student in 3–5 courses, spread across categories):
+- For each enrollment: set enrolledAt (random date within last 6 months), lastAccessedAt (recent)
+- Create a Progress document: completedLessons (50–100% of lessons), quizScores for completed lessons (scores 60–100)
+
+### 7. Passed Exam Attempts & Certificates
+For 60–70% of the enrolled courses (where progress ≥ 80% complete):
+- Create an ExamAttempt with score 70–98, passed: true, completedAt set
+- Add a certificate entry to the user's `certificates` array: {courseId, issuedAt, certificateId: uuid()}
+
+### 8. Failed Exam Attempts
+For ~20% of enrollments, create a failed ExamAttempt (score 40–65, passed: false) with no certificate issued.
+
+---
+
+## IMPLEMENTATION NOTES
+- Write this as a standalone seed script at `@/server/src/scripts/seedFullData.js` that can be run with `node` (use ES module syntax matching the rest of the server).
+- Import and reuse existing Mongoose models from `@/server/src/models/`.
+- Connect to MongoDB using the same MONGODB_URI from dotenv / `@/server/src/config/db.js`.
+- Hash all passwords with bcrypt (saltRounds=10).
+- Use `upsert: true` for instructor/student users so re-runs are idempotent.
+- For courses, lessons, exams — drop and re-seed on each run to keep data fresh (but preserve users).
+- Generate UUIDs for certificateId using the `crypto.randomUUID()` built-in (Node 16+).
+- Log progress: "✓ Seeded X instructors", "✓ Seeded X students", "✓ Seeded 15 courses with Y total lessons", etc.
+- Also update `@/server/src/index.js` to either auto-run this seed on startup (behind a SEED_DEMO_DATA=true env flag) or add a comment pointing to the script with the run command.
+- Add the run command as an npm script in `@/server/package.json`: `"seed": "node src/scripts/seedFullData.js"`
+
+All passwords must be bcrypt-hashed at saltRounds=10. The seeded instructor credentials (e.g. sarah.chen@learnify.com / Instructor@1234) must work end-to-end with the existing login route (POST /api/auth/login) which uses bcrypt.compare. Verify field names match User model exactly (email, password, role, name, bio, enrolledCourses, certificates).
+
+========================================================================
+[2026-05-21 16:12:04 UTC]  CONTEXT ASSEMBLY OUTPUT | request_id=ca85b146a946 intent=edit
+========================================================================
+--- context_summary ---
+Queried vector DB for course card UI, dark/light mode, Navbar, Dashboard, CourseViewer, AdminDashboard, Courses, and CourseDetail components — retrieved full component code for all key frontend files to map exact styling patterns, class names, and structure before assembling the UI overhaul directive.
+
+--- enriched_prompt (7413 chars) ---
+Perform a comprehensive premium UI overhaul of the Learnify learning platform. Every change must honour both light and dark mode, support full responsiveness, and incorporate smooth Framer Motion animations and micro-interactions throughout. The goal is a world-class, polished UX that rivals top EdTech platforms.
+
+---
+
+## 1. Dark/Light Mode System (Global)
+
+Create `client/src/context/ThemeContext.jsx` — a React context that:
+- Persists the user's choice in `localStorage` under key `"learnify-theme"`.
+- Defaults to the OS preference via `window.matchMedia('(prefers-color-scheme: dark)')`.
+- Toggles `dark` class on `<html>` via `document.documentElement.classList`.
+
+Update `client/src/index.css` to add full dark-mode CSS variable overrides. Define:
+- Light: `--bg-primary: #F8FAFC`, `--bg-card: #FFFFFF`, `--text-primary: #0F172A`, `--text-muted: #64748B`, `--border: #E2E8F0`, `--accent: #6366F1`
+- Dark: `--bg-primary: #0F172A`, `--bg-card: #1E293B`, `--text-primary: #F1F5F9`, `--text-muted: #94A3B8`, `--border: #334155`, `--accent: #818CF8`
+
+Wrap `client/src/main.jsx` (or `App.jsx`) with `<ThemeProvider>`.
+
+---
+
+## 2. Navbar — Dark Mode Toggle + Animations
+
+Rewrite @/client/src/components/Navbar.jsx:
+- Add a sun/moon toggle button (Lucide `Sun` / `Moon` icons) using `useTheme()`.
+- Animate the mobile menu open/close with Framer Motion `AnimatePresence` + slide-down.
+- Animate the user dropdown with scale + fade (origin top-right).
+- Apply `bg-[var(--bg-card)] border-[var(--border)]` for full dark-mode support.
+- Active nav links highlighted with indigo underline animated via `motion.div` layout.
+
+---
+
+## 3. CourseCard — Premium Redesign
+
+Rewrite @/client/src/components/CourseCard.jsx:
+- Glassmorphism hover effect: on hover, overlay a subtle `backdrop-blur-sm bg-white/5` shimmer.
+- Add star rating display (use `course.rating` or fallback to 4.5) with filled/half/empty star icons.
+- Add instructor avatar (first-letter avatar with gradient background).
+- Show a coloured category pill with category-specific gradient (Web Dev = indigo→blue, Data Science = purple→pink, AI = emerald→teal, Cybersecurity = red→orange, Mobile = amber→yellow).
+- Animated progress bar: when `isEnrolled`, show a `motion.div` width-animated progress fill.
+- "FREE" badge in top-left corner overlaying the thumbnail with a green pill.
+- Card entrance animation: `motion.div` with `initial={{ opacity: 0, y: 20 }}` `animate={{ opacity: 1, y: 0 }}` with staggered delay passed as prop.
+- Dark mode: card background `bg-[var(--bg-card)]`, text `text-[var(--text-primary)]`.
+- On hover: `shadow-2xl shadow-indigo-500/10 -translate-y-1` transform transition.
+
+---
+
+## 4. Student Dashboard — Premium Redesign
+
+Rewrite @/client/src/pages/Dashboard.jsx:
+- Header section: full-width gradient banner (`from-indigo-600 via-violet-600 to-purple-600`) with user avatar, name, role badge, and a motivational streak counter.
+- Stat cards: 4 cards (Enrolled, Completed, Certificates, Streak Days) with animated count-up numbers using a custom `useCountUp` hook. Each card has a gradient icon background and a subtle animated border.
+- Enrolled courses section: show course thumbnail image (not just icon), course title, category chip, animated progress bar with percentage label, and "Continue" CTA button.
+- Recent activity feed: timeline-style with connecting vertical line, colour-coded icons per activity type (lesson complete = green, quiz passed = blue, certificate = amber).
+- Certificates sidebar: styled certificate cards with a gold gradient border, certificate ID shown, and a "Download" button alongside "View".
+- Animate all sections in with `motion.div` stagger children.
+- Full dark-mode support throughout.
+
+---
+
+## 5. Course Viewer — Enhanced Learning Experience
+
+Update @/client/src/pages/CourseViewer.jsx:
+- Sidebar: apply dark mode classes (`bg-[#0F172A]` in dark, `bg-[#1E293B]` in light) — note existing sidebar is already dark slate; ensure theme variable usage.
+- Lesson completion animation: when "Mark Complete" is clicked, trigger a Framer Motion `AnimatePresence` confetti-style burst (use CSS keyframe `@keyframes pop-scale`) on the button.
+- Animated progress bar in sidebar: `motion.div` that animates width on load/change.
+- Active lesson in sidebar: animated left border `motion.div` sliding highlight.
+- Video player wrapper: add a loading skeleton that fades out once `iframe` loads (use `onLoad` on the iframe, opacity transition).
+- Quiz answer selection: animate each option with `whileHover={{ scale: 1.02 }}` and `whileTap={{ scale: 0.98 }}`.
+- Coding challenge panel: add a syntax-highlighted code editor feel — dark bg `#0D1117`, monospace font, line numbers via a CSS counter, and a "Run Code" shimmer button with gradient border.
+
+---
+
+## 6. Courses Catalogue — Enhanced Filters + Animations
+
+Update @/client/src/pages/Courses.jsx:
+- Search bar: add a subtle animated border glow on focus (`ring-indigo-400 shadow-indigo-200`).
+- Filter pills: animate selection with `motion.div` layout transition (shared layout key `"filter-pill"`).
+- Course grid: stagger card entrances using `motion.div` with `variants` container/item pattern.
+- Add a "View" toggle between grid (3-col) and list (1-col) mode with animated layout transition.
+- Loading skeletons: shimmer animation (`animate-pulse` with gradient sweep).
+- Empty state: Lottie-style CSS illustration or a large emoji + animated bounce.
+
+---
+
+## 7. Home Page — Hero + Sections Polish
+
+Update @/client/src/pages/Home.jsx (check file path):
+- Hero: animated gradient background using CSS `@keyframes gradient-shift` on `background-position`. Add floating code snippets / badges animating in with `motion.div` `y` float.
+- Stats strip: count-up animation on numbers when section scrolls into view (use `IntersectionObserver` or Framer Motion `whileInView`).
+- Featured courses section: horizontally scrollable on mobile, 3-col grid on desktop, with scroll snap.
+- Testimonials section (add if missing): 3 student testimonial cards with avatar, quote, star rating, and name. Auto-carousel on mobile.
+- CTA section: bold gradient (`from-indigo-600 to-violet-600`) with animated particles (pure CSS radial dots).
+
+---
+
+## 8. Global Shared Components
+
+Update @/client/src/components/ProgressBar.jsx (or wherever it lives):
+- Animate bar fill with `motion.div` `initial={{ width: 0 }}` → `animate={{ width: \`${value}%\` }}` with spring easing.
+- Show percentage label on the right.
+- Colour gradient: `from-indigo-500 to-violet-500`.
+
+Create `client/src/components/SkeletonCard.jsx` — a shimmer skeleton that matches CourseCard dimensions (h-48 thumbnail area, 3 text lines, 1 button).
+
+Create `client/src/components/ThemeToggle.jsx` — a pill-shaped toggle with sun/moon icon that animates between states.
+
+---
+
+## 9. TailwindCSS Configuration
+
+Update @/client/tailwind.config.js:
+- Add `darkMode: 'class'`.
+- Extend `animation` with: `float`, `gradient-shift`, `shimmer`, `pop-scale`, `count-up`.
+- Extend `keyframes` accordingly.
+- Add `fontFamily.display` pointing to `'Inter'` (or system stack with Inter first).
+
+---
+
+## Package References
+Check @/client/package.json for available deps — use `framer-motion` if present, else implement CSS transitions. Do NOT install new packages; use only what's already available.
+
+All existing API calls, routing, and auth logic must remain untouched. Only visual layer changes are in scope.
+
+
+========================================================================
+[2026-05-21 16:12:04 UTC]  PASSING TO EXECUTION ORCHESTRATOR | request_id=ca85b146a946 intent=edit
+========================================================================
+Perform a comprehensive premium UI overhaul of the Learnify learning platform. Every change must honour both light and dark mode, support full responsiveness, and incorporate smooth Framer Motion animations and micro-interactions throughout. The goal is a world-class, polished UX that rivals top EdTech platforms.
+
+---
+
+## 1. Dark/Light Mode System (Global)
+
+Create `client/src/context/ThemeContext.jsx` — a React context that:
+- Persists the user's choice in `localStorage` under key `"learnify-theme"`.
+- Defaults to the OS preference via `window.matchMedia('(prefers-color-scheme: dark)')`.
+- Toggles `dark` class on `<html>` via `document.documentElement.classList`.
+
+Update `client/src/index.css` to add full dark-mode CSS variable overrides. Define:
+- Light: `--bg-primary: #F8FAFC`, `--bg-card: #FFFFFF`, `--text-primary: #0F172A`, `--text-muted: #64748B`, `--border: #E2E8F0`, `--accent: #6366F1`
+- Dark: `--bg-primary: #0F172A`, `--bg-card: #1E293B`, `--text-primary: #F1F5F9`, `--text-muted: #94A3B8`, `--border: #334155`, `--accent: #818CF8`
+
+Wrap `client/src/main.jsx` (or `App.jsx`) with `<ThemeProvider>`.
+
+---
+
+## 2. Navbar — Dark Mode Toggle + Animations
+
+Rewrite @/client/src/components/Navbar.jsx:
+- Add a sun/moon toggle button (Lucide `Sun` / `Moon` icons) using `useTheme()`.
+- Animate the mobile menu open/close with Framer Motion `AnimatePresence` + slide-down.
+- Animate the user dropdown with scale + fade (origin top-right).
+- Apply `bg-[var(--bg-card)] border-[var(--border)]` for full dark-mode support.
+- Active nav links highlighted with indigo underline animated via `motion.div` layout.
+
+---
+
+## 3. CourseCard — Premium Redesign
+
+Rewrite @/client/src/components/CourseCard.jsx:
+- Glassmorphism hover effect: on hover, overlay a subtle `backdrop-blur-sm bg-white/5` shimmer.
+- Add star rating display (use `course.rating` or fallback to 4.5) with filled/half/empty star icons.
+- Add instructor avatar (first-letter avatar with gradient background).
+- Show a coloured category pill with category-specific gradient (Web Dev = indigo→blue, Data Science = purple→pink, AI = emerald→teal, Cybersecurity = red→orange, Mobile = amber→yellow).
+- Animated progress bar: when `isEnrolled`, show a `motion.div` width-animated progress fill.
+- "FREE" badge in top-left corner overlaying the thumbnail with a green pill.
+- Card entrance animation: `motion.div` with `initial={{ opacity: 0, y: 20 }}` `animate={{ opacity: 1, y: 0 }}` with staggered delay passed as prop.
+- Dark mode: card background `bg-[var(--bg-card)]`, text `text-[var(--text-primary)]`.
+- On hover: `shadow-2xl shadow-indigo-500/10 -translate-y-1` transform transition.
+
+---
+
+## 4. Student Dashboard — Premium Redesign
+
+Rewrite @/client/src/pages/Dashboard.jsx:
+- Header section: full-width gradient banner (`from-indigo-600 via-violet-600 to-purple-600`) with user avatar, name, role badge, and a motivational streak counter.
+- Stat cards: 4 cards (Enrolled, Completed, Certificates, Streak Days) with animated count-up numbers using a custom `useCountUp` hook. Each card has a gradient icon background and a subtle animated border.
+- Enrolled courses section: show course thumbnail image (not just icon), course title, category chip, animated progress bar with percentage label, and "Continue" CTA button.
+- Recent activity feed: timeline-style with connecting vertical line, colour-coded icons per activity type (lesson complete = green, quiz passed = blue, certificate = amber).
+- Certificates sidebar: styled certificate cards with a gold gradient border, certificate ID shown, and a "Download" button alongside "View".
+- Animate all sections in with `motion.div` stagger children.
+- Full dark-mode support throughout.
+
+---
+
+## 5. Course Viewer — Enhanced Learning Experience
+
+Update @/client/src/pages/CourseViewer.jsx:
+- Sidebar: apply dark mode classes (`bg-[#0F172A]` in dark, `bg-[#1E293B]` in light) — note existing sidebar is already dark slate; ensure theme variable usage.
+- Lesson completion animation: when "Mark Complete" is clicked, trigger a Framer Motion `AnimatePresence` confetti-style burst (use CSS keyframe `@keyframes pop-scale`) on the button.
+- Animated progress bar in sidebar: `motion.div` that animates width on load/change.
+- Active lesson in sidebar: animated left border `motion.div` sliding highlight.
+- Video player wrapper: add a loading skeleton that fades out once `iframe` loads (use `onLoad` on the iframe, opacity transition).
+- Quiz answer selection: animate each option with `whileHover={{ scale: 1.02 }}` and `whileTap={{ scale: 0.98 }}`.
+- Coding challenge panel: add a syntax-highlighted code editor feel — dark bg `#0D1117`, monospace font, line numbers via a CSS counter, and a "Run Code" shimmer button with gradient border.
+
+---
+
+## 6. Courses Catalogue — Enhanced Filters + Animations
+
+Update @/client/src/pages/Courses.jsx:
+- Search bar: add a subtle animated border glow on focus (`ring-indigo-400 shadow-indigo-200`).
+- Filter pills: animate selection with `motion.div` layout transition (shared layout key `"filter-pill"`).
+- Course grid: stagger card entrances using `motion.div` with `variants` container/item pattern.
+- Add a "View" toggle between grid (3-col) and list (1-col) mode with animated layout transition.
+- Loading skeletons: shimmer animation (`animate-pulse` with gradient sweep).
+- Empty state: Lottie-style CSS illustration or a large emoji + animated bounce.
+
+---
+
+## 7. Home Page — Hero + Sections Polish
+
+Update @/client/src/pages/Home.jsx (check file path):
+- Hero: animated gradient background using CSS `@keyframes gradient-shift` on `background-position`. Add floating code snippets / badges animating in with `motion.div` `y` float.
+- Stats strip: count-up animation on numbers when section scrolls into view (use `IntersectionObserver` or Framer Motion `whileInView`).
+- Featured courses section: horizontally scrollable on mobile, 3-col grid on desktop, with scroll snap.
+- Testimonials section (add if missing): 3 student testimonial cards with avatar, quote, star rating, and name. Auto-carousel on mobile.
+- CTA section: bold gradient (`from-indigo-600 to-violet-600`) with animated particles (pure CSS radial dots).
+
+---
+
+## 8. Global Shared Components
+
+Update @/client/src/components/ProgressBar.jsx (or wherever it lives):
+- Animate bar fill with `motion.div` `initial={{ width: 0 }}` → `animate={{ width: \`${value}%\` }}` with spring easing.
+- Show percentage label on the right.
+- Colour gradient: `from-indigo-500 to-violet-500`.
+
+Create `client/src/components/SkeletonCard.jsx` — a shimmer skeleton that matches CourseCard dimensions (h-48 thumbnail area, 3 text lines, 1 button).
+
+Create `client/src/components/ThemeToggle.jsx` — a pill-shaped toggle with sun/moon icon that animates between states.
+
+---
+
+## 9. TailwindCSS Configuration
+
+Update @/client/tailwind.config.js:
+- Add `darkMode: 'class'`.
+- Extend `animation` with: `float`, `gradient-shift`, `shimmer`, `pop-scale`, `count-up`.
+- Extend `keyframes` accordingly.
+- Add `fontFamily.display` pointing to `'Inter'` (or system stack with Inter first).
+
+---
+
+## Package References
+Check @/client/package.json for available deps — use `framer-motion` if present, else implement CSS transitions. Do NOT install new packages; use only what's already available.
+
+All existing API calls, routing, and auth logic must remain untouched. Only visual layer changes are in scope.
+
+
+========================================================================
+[2026-05-21 16:31:18 UTC]  CONTEXT ASSEMBLY OUTPUT | request_id=5413d3c18358 intent=edit
+========================================================================
+--- context_summary ---
+Queried vector DB for course viewer, quiz/challenge logic, student dashboard, and progress tracking. Found detailed implementations of CourseViewer (571 lines with video, quiz, coding challenge, resources), Dashboard with CourseProgressCard, getDashboard controller, Progress/Lesson models, and course routes. Used these to identify exact extension points for bookmarks, notifications, enhanced resources, certificates, and dashboard upgrades.
+
+--- enriched_prompt (7989 chars) ---
+Extend the Learnify learning platform with advanced learning features across both the frontend and backend. The existing platform has course viewer (@/client/src/pages/CourseViewer.jsx), student dashboard (@/client/src/pages/Dashboard.jsx), exam (@/client/src/pages/Exam.jsx), and backend models for Progress (@/server/src/models/Progress.js), Lesson (@/server/src/models/Lesson.js), Course, User. Routes are in @/server/src/routes/courseRoutes.js, controllers in @/server/src/controllers/courseController.js, @/server/src/controllers/userController.js. Check deps at @/client/package.json and @/server/package.json.
+
+## Features to build:
+
+### 1. Bookmarks System
+**Backend:**
+- Add a `bookmarks` array to the User model: `[{ courseId, lessonId, note, savedAt }]`
+- Add routes: `POST /api/users/bookmarks` (add bookmark with optional note), `DELETE /api/users/bookmarks/:bookmarkId` (remove), `GET /api/users/bookmarks` (list all, populated with course title/slug and lesson title)
+- Controller: `addBookmark`, `removeBookmark`, `getBookmarks`
+
+**Frontend:**
+- Add a bookmark toggle button (Bookmark icon) inside the CourseViewer lesson info card — filled when bookmarked, outline when not. Clicking adds/removes with optimistic UI update and toast feedback.
+- Add a dedicated **Bookmarks page** at `/bookmarks` — lists all bookmarked lessons grouped by course, shows course thumbnail, lesson title, user note, date saved, and a "Go to lesson" link to `/learn/:slug` with the lesson pre-selected via URL query param `?lesson=lessonId`.
+- Support clicking a bookmark in CourseViewer sidebar to jump to that lesson directly.
+
+### 2. Notifications System
+**Backend:**
+- New `Notification` model: `{ user: ObjectId, type: String (enum: lesson_complete, quiz_passed, challenge_passed, exam_passed, certificate_earned, enrolled, system), title, message, read: Boolean (default false), link: String, createdAt }`
+- Emit notifications automatically:
+  - On lesson complete → `lesson_complete` notification
+  - On quiz score ≥ 70% → `quiz_passed`
+  - On coding challenge passed → `challenge_passed`
+  - On exam passed → `exam_passed` + `certificate_earned`
+  - On course enroll → `enrolled`
+- Routes: `GET /api/notifications` (user's notifications, newest first), `PUT /api/notifications/:id/read`, `PUT /api/notifications/read-all`, `DELETE /api/notifications/:id`
+- Return unread count in the GET response: `{ notifications, unreadCount }`
+
+**Frontend:**
+- Navbar: add a Bell icon button with an animated red badge showing unread count (hidden if 0). Badge pulses when new notification arrives.
+- Clicking the bell opens a slide-down dropdown panel (max-h-96, scrollable) listing notifications with icon per type (CheckCircle=lesson, Star=quiz, Code=challenge, Award=exam/cert, BookOpen=enroll, Bell=system), timestamp (relative: "2h ago"), read/unread styling (unread = indigo-50 bg in light / slate-800 in dark, bold title), and "Mark all read" button at the top.
+- Each notification row: click → mark as read + navigate to `link` if present.
+- Poll for new notifications every 60 seconds while logged in.
+
+### 3. Enhanced Downloadable Resources
+**Backend (Lesson model already has resources array):**
+- Enhance the resource schema to add: `fileSize`, `downloadCount` (Number, default 0)
+- Add route: `POST /api/courses/:courseId/lessons/:lessonId/resources/:resourceIndex/download` — increments downloadCount and returns the resource URL
+- Seed a few sample downloadable resources (PDF, zip types) on existing lessons via the existing seed logic
+
+**Frontend (CourseViewer — resources section around line 293):**
+- Replace the plain anchor link with a styled Download card that shows: file type icon (FileText=pdf, Archive=zip, Link=link), file name, file size badge, download count, and a "Download" button that calls the download endpoint then opens the URL.
+- Add a progress indicator while downloading.
+
+### 4. Certificate Enhancements
+**Frontend — Certificate page (@/client/src/pages/Certificate.jsx if it exists):**
+- Add a "Share" button that copies a public URL (`/certificate/:id`) to clipboard with toast confirmation.
+- Add a "Download as PDF" button using `window.print()` with a print-specific CSS class that hides navbar/buttons and shows a clean A4 layout.
+- Display a QR-code-like visual element (SVG pattern or decorative grid) as a verification badge.
+- Add animated confetti burst on page load (use CSS keyframe particles or framer-motion) to celebrate the achievement.
+
+### 5. Personalized Student Dashboard Upgrade
+**Backend — enhance `getDashboard` in userController.js (around line 6):**
+- Add to the response: `weeklyGoal` (lessons completed this week vs. target of 5), `streakDays` (consecutive days with at least one lesson completed — compute from completedLessons timestamps), `totalQuizScore` (average quiz score across all attempts), `topCategory` (most enrolled category), `recommendedCourses` (3 published courses NOT yet enrolled, same category as top category or random if none)
+- Add `GET /api/users/learning-stats` route returning these computed stats separately for the stats widgets
+
+**Frontend — Dashboard.jsx:**
+- Add a **Learning Streak** widget: flame icon + streak count + "days in a row" label. Animate the flame icon with a flicker effect (CSS keyframe or framer-motion).
+- Add a **Weekly Goal** progress ring (SVG circle with stroke-dashoffset animation): shows "X/5 lessons this week" with a circular progress indicator.
+- Add a **Recommended Courses** horizontal scroll section: 3 course cards (same card component as Courses page) with "Enroll Now" CTA.
+- Add a **Quiz Performance** mini bar chart: show last 5 quiz scores as animated bars using CSS (no extra chart library needed). Label each bar with the lesson name (truncated).
+- Enhance the **Activity Feed**: show type-specific icons and colour-coded left border (green=lesson, blue=quiz, purple=challenge, gold=certificate). Add relative timestamps ("3h ago").
+- Add a **Bookmarks shortcut** section: show the 3 most recent bookmarks with a link to the full bookmarks page.
+
+### 6. Advanced Course Viewer Improvements
+**Frontend — CourseViewer.jsx:**
+- Add a **Notes** panel: a slide-in right drawer (w-80) toggled by a StickyNote icon button in the top bar. Inside: a textarea for free-form notes per lesson, auto-saved to localStorage with key `note-{courseId}-{lessonId}`. Display a character count. On open, load saved note; on change, debounce save 500ms.
+- Add **Lesson completion confetti**: when a lesson is marked complete for the first time (not already completed), fire 20 animated confetti particles using CSS keyframe animations from the button position upward.
+- Add a **Speed/focus mode toggle**: a Zap icon button in the top bar that when active, hides the sidebar on desktop and expands the main content to full width, storing preference in localStorage.
+- Add a **Video timestamp bookmarking**: below the video, show a "+ Note at timestamp" button that saves the current simulated timestamp (since it's an iframe, use a manual input seconds field) alongside the lesson note.
+
+### 7. New Routes & Navigation
+- Add `/bookmarks` to the React Router config and the Navbar (with Bookmark icon, visible only when logged in).
+- Add a Notifications bell to the Navbar next to the theme toggle.
+- Ensure all new API routes are registered in the Express app under the correct prefixes.
+
+## Implementation notes:
+- Use Framer Motion for all new animations (already installed).
+- Use Tailwind CSS with the existing `var(--bg-card)`, `var(--border)`, `var(--text-primary)`, `var(--text-muted)` CSS variables for dark/light mode compatibility.
+- All new backend routes must use the existing `protect` middleware for authentication.
+- Keep the existing mobile-responsive patterns (sidebar overlay, hamburger menu).
+- Toast notifications via the existing toast library already in use.
+- No new npm packages unless absolutely necessary — prefer built-in browser APIs and existing deps.
+
+========================================================================
+[2026-05-21 16:31:18 UTC]  PASSING TO EXECUTION ORCHESTRATOR | request_id=5413d3c18358 intent=edit
+========================================================================
+Extend the Learnify learning platform with advanced learning features across both the frontend and backend. The existing platform has course viewer (@/client/src/pages/CourseViewer.jsx), student dashboard (@/client/src/pages/Dashboard.jsx), exam (@/client/src/pages/Exam.jsx), and backend models for Progress (@/server/src/models/Progress.js), Lesson (@/server/src/models/Lesson.js), Course, User. Routes are in @/server/src/routes/courseRoutes.js, controllers in @/server/src/controllers/courseController.js, @/server/src/controllers/userController.js. Check deps at @/client/package.json and @/server/package.json.
+
+## Features to build:
+
+### 1. Bookmarks System
+**Backend:**
+- Add a `bookmarks` array to the User model: `[{ courseId, lessonId, note, savedAt }]`
+- Add routes: `POST /api/users/bookmarks` (add bookmark with optional note), `DELETE /api/users/bookmarks/:bookmarkId` (remove), `GET /api/users/bookmarks` (list all, populated with course title/slug and lesson title)
+- Controller: `addBookmark`, `removeBookmark`, `getBookmarks`
+
+**Frontend:**
+- Add a bookmark toggle button (Bookmark icon) inside the CourseViewer lesson info card — filled when bookmarked, outline when not. Clicking adds/removes with optimistic UI update and toast feedback.
+- Add a dedicated **Bookmarks page** at `/bookmarks` — lists all bookmarked lessons grouped by course, shows course thumbnail, lesson title, user note, date saved, and a "Go to lesson" link to `/learn/:slug` with the lesson pre-selected via URL query param `?lesson=lessonId`.
+- Support clicking a bookmark in CourseViewer sidebar to jump to that lesson directly.
+
+### 2. Notifications System
+**Backend:**
+- New `Notification` model: `{ user: ObjectId, type: String (enum: lesson_complete, quiz_passed, challenge_passed, exam_passed, certificate_earned, enrolled, system), title, message, read: Boolean (default false), link: String, createdAt }`
+- Emit notifications automatically:
+  - On lesson complete → `lesson_complete` notification
+  - On quiz score ≥ 70% → `quiz_passed`
+  - On coding challenge passed → `challenge_passed`
+  - On exam passed → `exam_passed` + `certificate_earned`
+  - On course enroll → `enrolled`
+- Routes: `GET /api/notifications` (user's notifications, newest first), `PUT /api/notifications/:id/read`, `PUT /api/notifications/read-all`, `DELETE /api/notifications/:id`
+- Return unread count in the GET response: `{ notifications, unreadCount }`
+
+**Frontend:**
+- Navbar: add a Bell icon button with an animated red badge showing unread count (hidden if 0). Badge pulses when new notification arrives.
+- Clicking the bell opens a slide-down dropdown panel (max-h-96, scrollable) listing notifications with icon per type (CheckCircle=lesson, Star=quiz, Code=challenge, Award=exam/cert, BookOpen=enroll, Bell=system), timestamp (relative: "2h ago"), read/unread styling (unread = indigo-50 bg in light / slate-800 in dark, bold title), and "Mark all read" button at the top.
+- Each notification row: click → mark as read + navigate to `link` if present.
+- Poll for new notifications every 60 seconds while logged in.
+
+### 3. Enhanced Downloadable Resources
+**Backend (Lesson model already has resources array):**
+- Enhance the resource schema to add: `fileSize`, `downloadCount` (Number, default 0)
+- Add route: `POST /api/courses/:courseId/lessons/:lessonId/resources/:resourceIndex/download` — increments downloadCount and returns the resource URL
+- Seed a few sample downloadable resources (PDF, zip types) on existing lessons via the existing seed logic
+
+**Frontend (CourseViewer — resources section around line 293):**
+- Replace the plain anchor link with a styled Download card that shows: file type icon (FileText=pdf, Archive=zip, Link=link), file name, file size badge, download count, and a "Download" button that calls the download endpoint then opens the URL.
+- Add a progress indicator while downloading.
+
+### 4. Certificate Enhancements
+**Frontend — Certificate page (@/client/src/pages/Certificate.jsx if it exists):**
+- Add a "Share" button that copies a public URL (`/certificate/:id`) to clipboard with toast confirmation.
+- Add a "Download as PDF" button using `window.print()` with a print-specific CSS class that hides navbar/buttons and shows a clean A4 layout.
+- Display a QR-code-like visual element (SVG pattern or decorative grid) as a verification badge.
+- Add animated confetti burst on page load (use CSS keyframe particles or framer-motion) to celebrate the achievement.
+
+### 5. Personalized Student Dashboard Upgrade
+**Backend — enhance `getDashboard` in userController.js (around line 6):**
+- Add to the response: `weeklyGoal` (lessons completed this week vs. target of 5), `streakDays` (consecutive days with at least one lesson completed — compute from completedLessons timestamps), `totalQuizScore` (average quiz score across all attempts), `topCategory` (most enrolled category), `recommendedCourses` (3 published courses NOT yet enrolled, same category as top category or random if none)
+- Add `GET /api/users/learning-stats` route returning these computed stats separately for the stats widgets
+
+**Frontend — Dashboard.jsx:**
+- Add a **Learning Streak** widget: flame icon + streak count + "days in a row" label. Animate the flame icon with a flicker effect (CSS keyframe or framer-motion).
+- Add a **Weekly Goal** progress ring (SVG circle with stroke-dashoffset animation): shows "X/5 lessons this week" with a circular progress indicator.
+- Add a **Recommended Courses** horizontal scroll section: 3 course cards (same card component as Courses page) with "Enroll Now" CTA.
+- Add a **Quiz Performance** mini bar chart: show last 5 quiz scores as animated bars using CSS (no extra chart library needed). Label each bar with the lesson name (truncated).
+- Enhance the **Activity Feed**: show type-specific icons and colour-coded left border (green=lesson, blue=quiz, purple=challenge, gold=certificate). Add relative timestamps ("3h ago").
+- Add a **Bookmarks shortcut** section: show the 3 most recent bookmarks with a link to the full bookmarks page.
+
+### 6. Advanced Course Viewer Improvements
+**Frontend — CourseViewer.jsx:**
+- Add a **Notes** panel: a slide-in right drawer (w-80) toggled by a StickyNote icon button in the top bar. Inside: a textarea for free-form notes per lesson, auto-saved to localStorage with key `note-{courseId}-{lessonId}`. Display a character count. On open, load saved note; on change, debounce save 500ms.
+- Add **Lesson completion confetti**: when a lesson is marked complete for the first time (not already completed), fire 20 animated confetti particles using CSS keyframe animations from the button position upward.
+- Add a **Speed/focus mode toggle**: a Zap icon button in the top bar that when active, hides the sidebar on desktop and expands the main content to full width, storing preference in localStorage.
+- Add a **Video timestamp bookmarking**: below the video, show a "+ Note at timestamp" button that saves the current simulated timestamp (since it's an iframe, use a manual input seconds field) alongside the lesson note.
+
+### 7. New Routes & Navigation
+- Add `/bookmarks` to the React Router config and the Navbar (with Bookmark icon, visible only when logged in).
+- Add a Notifications bell to the Navbar next to the theme toggle.
+- Ensure all new API routes are registered in the Express app under the correct prefixes.
+
+## Implementation notes:
+- Use Framer Motion for all new animations (already installed).
+- Use Tailwind CSS with the existing `var(--bg-card)`, `var(--border)`, `var(--text-primary)`, `var(--text-muted)` CSS variables for dark/light mode compatibility.
+- All new backend routes must use the existing `protect` middleware for authentication.
+- Keep the existing mobile-responsive patterns (sidebar overlay, hamburger menu).
+- Toast notifications via the existing toast library already in use.
+- No new npm packages unless absolutely necessary — prefer built-in browser APIs and existing deps.
+
+========================================================================
+[2026-05-21 16:53:35 UTC]  CONTEXT ASSEMBLY OUTPUT | request_id=b4175c213ad8 intent=edit
+========================================================================
+--- context_summary ---
+Queried vector DB for instructor panel, course management, admin routes, and course builder patterns. Found existing adminRoutes.js (only /users and /courses), courseRoutes.js with full CRUD, App.jsx routing structure with AdminRoute, and existing Dashboard/CourseViewer components for design reference. The project uses framer-motion, Tailwind dark/light CSS variables, and the instructor role maps to admin users.
+
+--- enriched_prompt (6135 chars) ---
+Build a **premium Instructor Panel** for the Learnify platform — a full-featured workspace where instructors (admin-role users) can manage their courses, lessons, quizzes, student progress, certificates, and analytics. This is a major EDIT/ADDITION spanning new frontend pages, new backend routes/controllers, and integration with existing models.
+
+---
+
+## Backend Changes
+
+### New Instructor Routes — add to `@/server/src/routes/adminRoutes.js` or create `/server/src/routes/instructorRoutes.js`
+
+Add protected (`adminOnly`) endpoints:
+
+1. **GET `/api/instructor/dashboard`** — aggregate stats: total courses, total students enrolled, total lessons, avg quiz scores across all instructor courses, total certificates issued, total revenue (always 0 since free).
+2. **GET `/api/instructor/courses`** — list all courses where `instructor === req.user._id`, populated with enrollment count, lesson count, avg rating, and completion rate.
+3. **GET `/api/instructor/courses/:id/analytics`** — per-course analytics: enrollment over time (last 30 days), lesson completion rates per lesson, quiz pass rate per lesson, exam attempts and pass rate, student list with progress%.
+4. **GET `/api/instructor/courses/:id/students`** — paginated list of enrolled students with their progress%, last accessed, quiz scores, exam status, and certificate earned flag.
+5. **POST `/api/instructor/courses/:id/certificates/issue`** — manually issue a certificate to a student (`body: { userId, courseId }`). Generate a UUID certificateId, create certificate record in User's certificates array.
+6. **GET `/api/instructor/certificates`** — list all certificates issued for the instructor's courses.
+
+Use existing models: `Course`, `Lesson`, `User`, `Progress`, `Exam`, `ExamAttempt` from `@/server/src/models/`.
+
+Register new routes in `@/server/src/index.js`.
+
+---
+
+## Frontend — New Pages & Components
+
+### 1. `/instructor` — Instructor Dashboard (`InstructorDashboard.jsx`)
+
+**Layout:** Dark sidebar (240px, `#0F172A`) with light main content area.
+
+**Sidebar nav items** (with icons):
+- Overview (LayoutDashboard icon)
+- My Courses (BookOpen)
+- Students (Users)
+- Quizzes (HelpCircle)
+- Certificates (Award)
+- Analytics (BarChart2)
+- Settings (Settings)
+
+**Overview tab content:**
+- Gradient welcome banner: "Welcome back, [name]" with subtitle showing total courses and students
+- 4 stat cards in a row (animated count-up): Total Courses, Total Students, Certificates Issued, Avg Quiz Score%
+- Quick actions row: "+ New Course" → `/admin/courses/new`, "View Students", "View Analytics"
+- Recent activity feed: last 10 enrollments / certificate issuances
+- Top performing courses table: title, enrolled, completion rate%, avg quiz score, status badge
+
+### 2. `/instructor/courses` — Course Manager
+
+- Header with "My Courses" title + "+ Create Course" button (links to `/admin/courses/new`)
+- Filter tabs: All | Published | Draft
+- Course cards in a 3-col grid showing: thumbnail, title, category badge, level pill, enrolled count, lesson count, status badge (Published=green, Draft=amber), quick actions (Edit → `/admin/courses/:id/edit`, Analytics, Delete with confirm modal)
+- Each card has a subtle hover lift + gradient overlay on thumbnail
+
+### 3. `/instructor/courses/:id/analytics` — Course Analytics Page
+
+- Back button to `/instructor/courses`
+- Hero stats row: Enrolled Students, Completion Rate, Avg Quiz Score, Exam Pass Rate
+- **Enrollment Trend Chart** — line chart (use recharts if available, else render as SVG bars) showing last 30 days
+- **Lesson Completion Table** — table with columns: Lesson Title, Views, Completion%, Quiz Pass Rate
+- **Student Progress Table** — columns: Student Name, Email, Progress Bar, Quiz Score, Exam Status (Passed/Failed/Not Taken), Certificate (issued/not), Actions (Issue Certificate button)
+- **Exam Stats Panel** — attempts count, pass rate donut/ring, avg score
+
+### 4. `/instructor/students` — Students Overview
+
+- Search bar + filter by course dropdown
+- Table: Avatar, Name, Email, Enrolled Courses (count), Last Active, Overall Progress bar, Certificates earned
+- Row click expands inline to show per-course progress breakdown
+
+### 5. `/instructor/certificates` — Certificates Panel
+
+- Stats: Total issued, This month, By course breakdown
+- Table: Student Name, Course, Issue Date, Certificate ID (truncated), Verify Link, Revoke button
+- "Issue Certificate Manually" modal: select student + course, confirm, calls POST endpoint
+
+### 6. `/instructor/quizzes` — Quiz Manager
+
+- List all lessons across all instructor courses that have quiz questions
+- Show per-quiz: lesson name, course name, question count, avg score, attempts count
+- Expandable row shows each question with correct answer highlighted and per-option selection %
+
+---
+
+## Routing
+
+Add to `@/client/src/App.jsx` under `AdminRoute`:
+```
+/instructor → InstructorDashboard
+/instructor/courses → InstructorCourses  
+/instructor/courses/:id/analytics → CourseAnalytics
+/instructor/students → InstructorStudents
+/instructor/certificates → InstructorCertificates
+/instructor/quizzes → InstructorQuizzes
+```
+
+Add a link to `/instructor` in the Navbar dropdown for admin users (check `@/client/src/components/Navbar.jsx`).
+
+---
+
+## Design System
+
+Match existing dark/light CSS variables (`var(--bg-primary)`, `var(--bg-card)`, `var(--border)`, `var(--text-primary)`, `var(--text-muted)`) used throughout the project.
+
+Use `framer-motion` for:
+- Sidebar active-item animated indicator (layoutId)
+- Page transition (opacity + y)
+- Stat card count-up on mount
+- Table row stagger on load
+- Modal slide-up entry
+
+Colour palette for instructor panel accents:
+- Primary: `#6366F1` (indigo-500) → `#7C3AED` (violet-600)
+- Success: `#10B981` (emerald-500)
+- Warning: `#F59E0B` (amber-500)
+- Danger: `#EF4444` (red-500)
+- Card bg light: `#FFFFFF`, dark: `#1E293B`
+- Sidebar: `#0F172A` always (same as course viewer sidebar)
+
+Charts: use recharts (`@/client/package.json` — check if present). If not, implement clean SVG bar/line charts inline.
+
+Check all available dependencies at @/client/package.json and @/server/package.json before implementing.
+
+========================================================================
+[2026-05-21 16:53:35 UTC]  PASSING TO EXECUTION ORCHESTRATOR | request_id=b4175c213ad8 intent=edit
+========================================================================
+Build a **premium Instructor Panel** for the Learnify platform — a full-featured workspace where instructors (admin-role users) can manage their courses, lessons, quizzes, student progress, certificates, and analytics. This is a major EDIT/ADDITION spanning new frontend pages, new backend routes/controllers, and integration with existing models.
+
+---
+
+## Backend Changes
+
+### New Instructor Routes — add to `@/server/src/routes/adminRoutes.js` or create `/server/src/routes/instructorRoutes.js`
+
+Add protected (`adminOnly`) endpoints:
+
+1. **GET `/api/instructor/dashboard`** — aggregate stats: total courses, total students enrolled, total lessons, avg quiz scores across all instructor courses, total certificates issued, total revenue (always 0 since free).
+2. **GET `/api/instructor/courses`** — list all courses where `instructor === req.user._id`, populated with enrollment count, lesson count, avg rating, and completion rate.
+3. **GET `/api/instructor/courses/:id/analytics`** — per-course analytics: enrollment over time (last 30 days), lesson completion rates per lesson, quiz pass rate per lesson, exam attempts and pass rate, student list with progress%.
+4. **GET `/api/instructor/courses/:id/students`** — paginated list of enrolled students with their progress%, last accessed, quiz scores, exam status, and certificate earned flag.
+5. **POST `/api/instructor/courses/:id/certificates/issue`** — manually issue a certificate to a student (`body: { userId, courseId }`). Generate a UUID certificateId, create certificate record in User's certificates array.
+6. **GET `/api/instructor/certificates`** — list all certificates issued for the instructor's courses.
+
+Use existing models: `Course`, `Lesson`, `User`, `Progress`, `Exam`, `ExamAttempt` from `@/server/src/models/`.
+
+Register new routes in `@/server/src/index.js`.
+
+---
+
+## Frontend — New Pages & Components
+
+### 1. `/instructor` — Instructor Dashboard (`InstructorDashboard.jsx`)
+
+**Layout:** Dark sidebar (240px, `#0F172A`) with light main content area.
+
+**Sidebar nav items** (with icons):
+- Overview (LayoutDashboard icon)
+- My Courses (BookOpen)
+- Students (Users)
+- Quizzes (HelpCircle)
+- Certificates (Award)
+- Analytics (BarChart2)
+- Settings (Settings)
+
+**Overview tab content:**
+- Gradient welcome banner: "Welcome back, [name]" with subtitle showing total courses and students
+- 4 stat cards in a row (animated count-up): Total Courses, Total Students, Certificates Issued, Avg Quiz Score%
+- Quick actions row: "+ New Course" → `/admin/courses/new`, "View Students", "View Analytics"
+- Recent activity feed: last 10 enrollments / certificate issuances
+- Top performing courses table: title, enrolled, completion rate%, avg quiz score, status badge
+
+### 2. `/instructor/courses` — Course Manager
+
+- Header with "My Courses" title + "+ Create Course" button (links to `/admin/courses/new`)
+- Filter tabs: All | Published | Draft
+- Course cards in a 3-col grid showing: thumbnail, title, category badge, level pill, enrolled count, lesson count, status badge (Published=green, Draft=amber), quick actions (Edit → `/admin/courses/:id/edit`, Analytics, Delete with confirm modal)
+- Each card has a subtle hover lift + gradient overlay on thumbnail
+
+### 3. `/instructor/courses/:id/analytics` — Course Analytics Page
+
+- Back button to `/instructor/courses`
+- Hero stats row: Enrolled Students, Completion Rate, Avg Quiz Score, Exam Pass Rate
+- **Enrollment Trend Chart** — line chart (use recharts if available, else render as SVG bars) showing last 30 days
+- **Lesson Completion Table** — table with columns: Lesson Title, Views, Completion%, Quiz Pass Rate
+- **Student Progress Table** — columns: Student Name, Email, Progress Bar, Quiz Score, Exam Status (Passed/Failed/Not Taken), Certificate (issued/not), Actions (Issue Certificate button)
+- **Exam Stats Panel** — attempts count, pass rate donut/ring, avg score
+
+### 4. `/instructor/students` — Students Overview
+
+- Search bar + filter by course dropdown
+- Table: Avatar, Name, Email, Enrolled Courses (count), Last Active, Overall Progress bar, Certificates earned
+- Row click expands inline to show per-course progress breakdown
+
+### 5. `/instructor/certificates` — Certificates Panel
+
+- Stats: Total issued, This month, By course breakdown
+- Table: Student Name, Course, Issue Date, Certificate ID (truncated), Verify Link, Revoke button
+- "Issue Certificate Manually" modal: select student + course, confirm, calls POST endpoint
+
+### 6. `/instructor/quizzes` — Quiz Manager
+
+- List all lessons across all instructor courses that have quiz questions
+- Show per-quiz: lesson name, course name, question count, avg score, attempts count
+- Expandable row shows each question with correct answer highlighted and per-option selection %
+
+---
+
+## Routing
+
+Add to `@/client/src/App.jsx` under `AdminRoute`:
+```
+/instructor → InstructorDashboard
+/instructor/courses → InstructorCourses  
+/instructor/courses/:id/analytics → CourseAnalytics
+/instructor/students → InstructorStudents
+/instructor/certificates → InstructorCertificates
+/instructor/quizzes → InstructorQuizzes
+```
+
+Add a link to `/instructor` in the Navbar dropdown for admin users (check `@/client/src/components/Navbar.jsx`).
+
+---
+
+## Design System
+
+Match existing dark/light CSS variables (`var(--bg-primary)`, `var(--bg-card)`, `var(--border)`, `var(--text-primary)`, `var(--text-muted)`) used throughout the project.
+
+Use `framer-motion` for:
+- Sidebar active-item animated indicator (layoutId)
+- Page transition (opacity + y)
+- Stat card count-up on mount
+- Table row stagger on load
+- Modal slide-up entry
+
+Colour palette for instructor panel accents:
+- Primary: `#6366F1` (indigo-500) → `#7C3AED` (violet-600)
+- Success: `#10B981` (emerald-500)
+- Warning: `#F59E0B` (amber-500)
+- Danger: `#EF4444` (red-500)
+- Card bg light: `#FFFFFF`, dark: `#1E293B`
+- Sidebar: `#0F172A` always (same as course viewer sidebar)
+
+Charts: use recharts (`@/client/package.json` — check if present). If not, implement clean SVG bar/line charts inline.
+
+Check all available dependencies at @/client/package.json and @/server/package.json before implementing.
+
+========================================================================
+[2026-05-21 17:09:59 UTC]  CONTEXT ASSEMBLY OUTPUT | request_id=f947dc91fc4b intent=edit
+========================================================================
+--- context_summary ---
+Queried vector DB for AI/recommendations, dashboard, and progress tracking context. Found existing recommendation logic in userController.js getDashboard, Progress/Course/User models, course routes, and the Dashboard.jsx component structure — used to understand integration points for AI features.
+
+--- enriched_prompt (7955 chars) ---
+Build and integrate a comprehensive AI-powered features layer into the existing Learnify platform. No external AI API key is required — implement all AI logic using deterministic algorithms and smart heuristics that simulate AI behavior convincingly. Below is the full specification:
+
+---
+
+## 1. Backend — New Routes & Controllers
+
+Create `server/src/controllers/aiController.js` and `server/src/routes/aiRoutes.js`, then register the router in `server/src/index.js` under `/api/ai`.
+
+### Endpoints:
+
+**GET /api/ai/recommendations** (protect)
+Smart course recommendation engine. Reads the authenticated user's enrolled courses, completed lessons, quiz scores, top category (from Progress + User.enrolledCourses), tags, and skill level. Returns up to 6 ranked published courses not yet enrolled in, scored by: category match (+3), tag overlap (+1 each), appropriate level match (+2), popularity (enrolledCount), and a "diversity bonus" for underrepresented categories. Returns `{ courses, reasoning }` where `reasoning` is a short string explaining the picks.
+
+**GET /api/ai/roadmap** (protect) + optional `?goal=<string>`
+Personalized learning roadmap generator. Accepts a `goal` query param (e.g. "become a full-stack developer"). Analyzes user's enrolled courses and progress. Returns a structured 4–6 step roadmap:
+```json
+{
+  "goal": "...",
+  "steps": [
+    { "step": 1, "title": "...", "description": "...", "suggestedCourses": [...], "estimatedWeeks": 2, "skills": ["HTML","CSS"] }
+  ],
+  "totalWeeks": 12,
+  "currentStep": 2
+}
+```
+Map common goal keywords to predefined roadmap templates: "web developer" / "frontend" → Web Dev path, "data science" / "data scientist" → Data Science path, "mobile" → Mobile path, "AI" / "machine learning" → AI/ML path, "cybersecurity" / "security" → Security path. Fall back to a general "Full-Stack Developer" roadmap. Populate `suggestedCourses` with real course data from the DB matching each step's category/tags.
+
+**POST /api/ai/chat** (protect)
+AI study assistant. Accepts `{ message, context: { courseId?, lessonTitle? } }`. Implements a rule-based NLP responder covering:
+- Greetings → friendly welcome
+- Questions about a specific course/lesson (context-aware) → pull lesson/course data from DB and respond with relevant info
+- Keyword matching: "quiz", "exam", "certificate", "deadline", "progress", "help", "explain", "how", "what", "stuck", "code", "error"
+- Fallback: a thoughtful generic study tip response
+Returns `{ reply, suggestions: ["Follow-up question 1", ...] }` where suggestions are 3 relevant follow-up prompts.
+
+**POST /api/ai/generate-quiz** (protect, adminOnly)
+Auto quiz generator for admins. Accepts `{ topic, difficulty, count }`. Uses a topic → question bank map seeded with 30+ questions across topics: JavaScript, Python, React, CSS, Node.js, Databases, Git, Algorithms, Data Science, Machine Learning, Cybersecurity, HTML. Returns `{ questions: [{ question, options, correctIndex, explanation }] }` randomly sampled and shuffled.
+
+**GET /api/ai/skills** (protect)
+Personalized skill tracker. Aggregates user's quiz scores per course category and lesson tags. Returns:
+```json
+{
+  "skills": [
+    { "name": "JavaScript", "level": "Intermediate", "score": 78, "lessonsCompleted": 5, "trend": "improving" }
+  ],
+  "strongestSkill": "...",
+  "improvementArea": "...",
+  "weeklyProgress": [{ "week": "Mon", "lessonsCompleted": 2, "avgScore": 75 }]
+}
+```
+Derive skill levels: 0–39 = Beginner, 40–69 = Intermediate, 70–89 = Advanced, 90–100 = Expert. Compute trend by comparing last 3 quiz scores vs previous 3.
+
+---
+
+## 2. Frontend — New Pages & Components
+
+### `/ai` — AI Hub Page (`client/src/pages/AIHub.jsx`)
+A premium dark-accented hub page with 5 feature cards in a responsive grid, each with an icon, title, description, and a "Launch" button linking to the respective feature sub-section. Use a glowing gradient hero banner with an animated "AI-powered" badge. Cards:
+- 🎯 Smart Recommendations
+- 🗺️ Learning Roadmap
+- 💬 Study Assistant
+- ⚡ Quiz Generator (admin only)
+- 📊 Skill Tracker
+
+### `/ai/recommendations` — Smart Recommendations (`client/src/pages/AIRecommendations.jsx`)
+- Calls `GET /api/ai/recommendations`
+- Shows a "Why these were recommended" reasoning pill at the top
+- Renders course cards in a 3-column grid with animated stagger (reuse/extend the existing course card style)
+- "AI Score" badge (percentage match) on each card
+- Skeleton loaders while fetching
+
+### `/ai/roadmap` — Learning Roadmap (`client/src/pages/AIRoadmap.jsx`)
+- Input field for goal (pre-populated with placeholder "e.g. become a full-stack developer")
+- On submit calls `GET /api/ai/roadmap?goal=...`
+- Renders a vertical timeline: each step has a number circle (gradient), title, description, skill tags, estimated weeks badge, and suggested course cards as small inline chips
+- Highlight the "current step" (step the user is on) with a pulsing indigo ring
+- Animate steps in with staggered slide-up
+
+### `/ai/chat` — AI Study Assistant (`client/src/pages/AIChat.jsx`)
+- Full-height chat interface (dark sidebar optional)
+- Messages rendered in chat bubbles: user messages right-aligned (indigo), AI responses left-aligned (card background) with a small AI avatar (gradient circle with ✨)
+- Typing indicator (animated 3-dot bounce) while waiting
+- Suggestion chips below the input (from `suggestions` in response) — clicking a chip sends it as a message
+- Keyboard shortcut: Enter to send, Shift+Enter for newline
+- Persist last 20 messages in component state
+
+### `/ai/skills` — Skill Tracker (`client/src/pages/AISkillTracker.jsx`)
+- Hero section: strongest skill badge + improvement area alert
+- Skill cards grid: each card has skill name, level pill (color-coded: Beginner=slate, Intermediate=blue, Advanced=violet, Expert=amber), animated progress bar (score %), lessons count, trend indicator (↑ green / → grey / ↓ red)
+- Weekly progress bar chart at the bottom (SVG bars, one per day Mon–Sun, colored by lessons completed)
+- Skeleton loaders
+
+### `/ai/quiz-generator` — Quiz Generator (admin only, `client/src/pages/AIQuizGenerator.jsx`)
+- Form: topic dropdown (all supported topics), difficulty select (Easy/Medium/Hard), question count slider (5–20)
+- On generate: calls `POST /api/ai/generate-quiz`, renders a preview of each question with its correct answer highlighted in green, other options in default style
+- "Copy to Course" button that saves to localStorage for admin to paste into lesson builder
+- Animate cards in with stagger
+
+---
+
+## 3. Navigation Integration
+
+- Add an **"AI Features"** nav link (with a sparkles/brain icon, e.g. `Sparkles` from lucide-react) in the main `Navbar` for all authenticated users, linking to `/ai`
+- Add the 5 AI sub-routes to `client/src/App.jsx` (or wherever routes are defined), protecting `/ai/quiz-generator` with an admin guard
+
+---
+
+## 4. Dashboard Integration
+
+In `client/src/pages/Dashboard.jsx`:
+- Add an "AI Insights" card widget (below the weekly goal ring) with 3 quick-action buttons: "Get Recommendations", "My Skills", "Open Chat" — each links to the respective AI page
+- This widget has a gradient indigo→violet border and a `✨ AI-Powered` badge in the top-right corner
+
+---
+
+## Design System
+- Match existing CSS variable theming (`var(--bg-card)`, `var(--border)`, `var(--text-primary)`, `var(--text-muted)`)
+- Use framer-motion for all animations (already in `@/client/package.json`)
+- Use lucide-react icons (already installed)
+- Dark mode fully supported
+- All pages responsive (mobile-first, single column → multi-column on md/lg)
+
+Check available deps at @/client/package.json and @/server/package.json. The User model is at @/server/src/models/User.js, Progress model at @/server/src/models/Progress.js, Course model at @/server/src/models/Course.js. Auth middleware (`protect`, `adminOnly`) is in `server/src/middleware/auth.js`. The main server entry (where routes are registered) is `server/src/index.js`.
+
+========================================================================
+[2026-05-21 17:09:59 UTC]  PASSING TO EXECUTION ORCHESTRATOR | request_id=f947dc91fc4b intent=edit
+========================================================================
+Build and integrate a comprehensive AI-powered features layer into the existing Learnify platform. No external AI API key is required — implement all AI logic using deterministic algorithms and smart heuristics that simulate AI behavior convincingly. Below is the full specification:
+
+---
+
+## 1. Backend — New Routes & Controllers
+
+Create `server/src/controllers/aiController.js` and `server/src/routes/aiRoutes.js`, then register the router in `server/src/index.js` under `/api/ai`.
+
+### Endpoints:
+
+**GET /api/ai/recommendations** (protect)
+Smart course recommendation engine. Reads the authenticated user's enrolled courses, completed lessons, quiz scores, top category (from Progress + User.enrolledCourses), tags, and skill level. Returns up to 6 ranked published courses not yet enrolled in, scored by: category match (+3), tag overlap (+1 each), appropriate level match (+2), popularity (enrolledCount), and a "diversity bonus" for underrepresented categories. Returns `{ courses, reasoning }` where `reasoning` is a short string explaining the picks.
+
+**GET /api/ai/roadmap** (protect) + optional `?goal=<string>`
+Personalized learning roadmap generator. Accepts a `goal` query param (e.g. "become a full-stack developer"). Analyzes user's enrolled courses and progress. Returns a structured 4–6 step roadmap:
+```json
+{
+  "goal": "...",
+  "steps": [
+    { "step": 1, "title": "...", "description": "...", "suggestedCourses": [...], "estimatedWeeks": 2, "skills": ["HTML","CSS"] }
+  ],
+  "totalWeeks": 12,
+  "currentStep": 2
+}
+```
+Map common goal keywords to predefined roadmap templates: "web developer" / "frontend" → Web Dev path, "data science" / "data scientist" → Data Science path, "mobile" → Mobile path, "AI" / "machine learning" → AI/ML path, "cybersecurity" / "security" → Security path. Fall back to a general "Full-Stack Developer" roadmap. Populate `suggestedCourses` with real course data from the DB matching each step's category/tags.
+
+**POST /api/ai/chat** (protect)
+AI study assistant. Accepts `{ message, context: { courseId?, lessonTitle? } }`. Implements a rule-based NLP responder covering:
+- Greetings → friendly welcome
+- Questions about a specific course/lesson (context-aware) → pull lesson/course data from DB and respond with relevant info
+- Keyword matching: "quiz", "exam", "certificate", "deadline", "progress", "help", "explain", "how", "what", "stuck", "code", "error"
+- Fallback: a thoughtful generic study tip response
+Returns `{ reply, suggestions: ["Follow-up question 1", ...] }` where suggestions are 3 relevant follow-up prompts.
+
+**POST /api/ai/generate-quiz** (protect, adminOnly)
+Auto quiz generator for admins. Accepts `{ topic, difficulty, count }`. Uses a topic → question bank map seeded with 30+ questions across topics: JavaScript, Python, React, CSS, Node.js, Databases, Git, Algorithms, Data Science, Machine Learning, Cybersecurity, HTML. Returns `{ questions: [{ question, options, correctIndex, explanation }] }` randomly sampled and shuffled.
+
+**GET /api/ai/skills** (protect)
+Personalized skill tracker. Aggregates user's quiz scores per course category and lesson tags. Returns:
+```json
+{
+  "skills": [
+    { "name": "JavaScript", "level": "Intermediate", "score": 78, "lessonsCompleted": 5, "trend": "improving" }
+  ],
+  "strongestSkill": "...",
+  "improvementArea": "...",
+  "weeklyProgress": [{ "week": "Mon", "lessonsCompleted": 2, "avgScore": 75 }]
+}
+```
+Derive skill levels: 0–39 = Beginner, 40–69 = Intermediate, 70–89 = Advanced, 90–100 = Expert. Compute trend by comparing last 3 quiz scores vs previous 3.
+
+---
+
+## 2. Frontend — New Pages & Components
+
+### `/ai` — AI Hub Page (`client/src/pages/AIHub.jsx`)
+A premium dark-accented hub page with 5 feature cards in a responsive grid, each with an icon, title, description, and a "Launch" button linking to the respective feature sub-section. Use a glowing gradient hero banner with an animated "AI-powered" badge. Cards:
+- 🎯 Smart Recommendations
+- 🗺️ Learning Roadmap
+- 💬 Study Assistant
+- ⚡ Quiz Generator (admin only)
+- 📊 Skill Tracker
+
+### `/ai/recommendations` — Smart Recommendations (`client/src/pages/AIRecommendations.jsx`)
+- Calls `GET /api/ai/recommendations`
+- Shows a "Why these were recommended" reasoning pill at the top
+- Renders course cards in a 3-column grid with animated stagger (reuse/extend the existing course card style)
+- "AI Score" badge (percentage match) on each card
+- Skeleton loaders while fetching
+
+### `/ai/roadmap` — Learning Roadmap (`client/src/pages/AIRoadmap.jsx`)
+- Input field for goal (pre-populated with placeholder "e.g. become a full-stack developer")
+- On submit calls `GET /api/ai/roadmap?goal=...`
+- Renders a vertical timeline: each step has a number circle (gradient), title, description, skill tags, estimated weeks badge, and suggested course cards as small inline chips
+- Highlight the "current step" (step the user is on) with a pulsing indigo ring
+- Animate steps in with staggered slide-up
+
+### `/ai/chat` — AI Study Assistant (`client/src/pages/AIChat.jsx`)
+- Full-height chat interface (dark sidebar optional)
+- Messages rendered in chat bubbles: user messages right-aligned (indigo), AI responses left-aligned (card background) with a small AI avatar (gradient circle with ✨)
+- Typing indicator (animated 3-dot bounce) while waiting
+- Suggestion chips below the input (from `suggestions` in response) — clicking a chip sends it as a message
+- Keyboard shortcut: Enter to send, Shift+Enter for newline
+- Persist last 20 messages in component state
+
+### `/ai/skills` — Skill Tracker (`client/src/pages/AISkillTracker.jsx`)
+- Hero section: strongest skill badge + improvement area alert
+- Skill cards grid: each card has skill name, level pill (color-coded: Beginner=slate, Intermediate=blue, Advanced=violet, Expert=amber), animated progress bar (score %), lessons count, trend indicator (↑ green / → grey / ↓ red)
+- Weekly progress bar chart at the bottom (SVG bars, one per day Mon–Sun, colored by lessons completed)
+- Skeleton loaders
+
+### `/ai/quiz-generator` — Quiz Generator (admin only, `client/src/pages/AIQuizGenerator.jsx`)
+- Form: topic dropdown (all supported topics), difficulty select (Easy/Medium/Hard), question count slider (5–20)
+- On generate: calls `POST /api/ai/generate-quiz`, renders a preview of each question with its correct answer highlighted in green, other options in default style
+- "Copy to Course" button that saves to localStorage for admin to paste into lesson builder
+- Animate cards in with stagger
+
+---
+
+## 3. Navigation Integration
+
+- Add an **"AI Features"** nav link (with a sparkles/brain icon, e.g. `Sparkles` from lucide-react) in the main `Navbar` for all authenticated users, linking to `/ai`
+- Add the 5 AI sub-routes to `client/src/App.jsx` (or wherever routes are defined), protecting `/ai/quiz-generator` with an admin guard
+
+---
+
+## 4. Dashboard Integration
+
+In `client/src/pages/Dashboard.jsx`:
+- Add an "AI Insights" card widget (below the weekly goal ring) with 3 quick-action buttons: "Get Recommendations", "My Skills", "Open Chat" — each links to the respective AI page
+- This widget has a gradient indigo→violet border and a `✨ AI-Powered` badge in the top-right corner
+
+---
+
+## Design System
+- Match existing CSS variable theming (`var(--bg-card)`, `var(--border)`, `var(--text-primary)`, `var(--text-muted)`)
+- Use framer-motion for all animations (already in `@/client/package.json`)
+- Use lucide-react icons (already installed)
+- Dark mode fully supported
+- All pages responsive (mobile-first, single column → multi-column on md/lg)
+
+Check available deps at @/client/package.json and @/server/package.json. The User model is at @/server/src/models/User.js, Progress model at @/server/src/models/Progress.js, Course model at @/server/src/models/Course.js. Auth middleware (`protect`, `adminOnly`) is in `server/src/middleware/auth.js`. The main server entry (where routes are registered) is `server/src/index.js`.
