@@ -1618,3 +1618,49 @@ In `client/src/pages/Dashboard.jsx`:
 - All pages responsive (mobile-first, single column → multi-column on md/lg)
 
 Check available deps at @/client/package.json and @/server/package.json. The User model is at @/server/src/models/User.js, Progress model at @/server/src/models/Progress.js, Course model at @/server/src/models/Course.js. Auth middleware (`protect`, `adminOnly`) is in `server/src/middleware/auth.js`. The main server entry (where routes are registered) is `server/src/index.js`.
+
+========================================================================
+[2026-05-22 09:50:43 UTC]  CONTEXT ASSEMBLY OUTPUT | request_id=8b76928a9ce5 intent=edit
+========================================================================
+--- context_summary ---
+Read the full Navbar component (lines 41–542 in client/src/components/Navbar.jsx) and reviewed the project structure to understand all existing nav links, notification logic, dropdown menus, and mobile menu patterns before composing the redesign directive.
+
+--- enriched_prompt (2690 chars) ---
+Redesign the navbar in @/client/src/components/Navbar.jsx with a premium, modern look. Keep all existing functionality (auth, notifications, dark mode toggle, dropdown menus, mobile menu, routing) intact but give it a complete visual overhaul:
+
+**Visual Design Goals:**
+- Switch from a flat card background to a true frosted-glass effect: `backdrop-blur-xl bg-white/80 dark:bg-slate-900/80` with a subtle bottom border gradient instead of a plain border
+- Increase navbar height to `h-18` (72px) for a more spacious feel
+- Add a thin animated gradient accent line at the very top of the navbar (indigo → violet → purple, 2px tall)
+- Logo: give "Learnify" a larger, bolder gradient wordmark; animate the icon with a continuous slow float rather than only on hover
+- Nav links: replace plain text links with pill-style links that have a soft background on hover (`bg-indigo-50 dark:bg-indigo-950/40`); the active link should use a filled indigo pill (`bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300`) instead of just an underline indicator — remove the `layoutId="nav-underline"` underline approach
+- Add icons to each nav link (e.g. Home → `Home` icon, Courses → `BookOpen`, Instructors → `Users`, Dashboard → `LayoutDashboard`, Bookmarks → `Bookmark`, AI Features → `Sparkles`) shown at 14px alongside the label
+- Notification bell: style it as a rounded-xl button with a gradient background on hover; add a subtle ring pulse animation around the badge when unread count > 0
+- User avatar button: replace the initials circle with a more premium version — gradient ring border (`ring-2 ring-indigo-400/60`), slightly larger (36px), and show a small online status dot (green)
+- The user dropdown: add a gradient header section showing the user's avatar, name, role badge (color-coded: admin = amber, student = indigo), and a thin gradient divider before menu items; menu items get icons + hover with indigo accent background
+- Mobile menu: slide in from the top with a frosted glass background matching the navbar; group links into sections (Learn, Personal, Admin) with small section labels
+- Smooth scroll-aware behaviour: when the user scrolls down > 20px, add a stronger shadow (`shadow-lg shadow-slate-200/50 dark:shadow-slate-900/50`) and slightly increase backdrop blur — use a scroll event listener + useState for this
+- All transitions should use `duration-200` or spring physics via framer-motion where already used
+
+Check available packages at @/client/package.json. Preserve all import paths, hook usage (`useAuth`, `useNavigate`, `useLocation`), notification polling logic, and service calls unchanged — only the JSX structure and styling should change.
+
+========================================================================
+[2026-05-22 09:50:43 UTC]  PASSING TO EXECUTION ORCHESTRATOR | request_id=8b76928a9ce5 intent=edit
+========================================================================
+Redesign the navbar in @/client/src/components/Navbar.jsx with a premium, modern look. Keep all existing functionality (auth, notifications, dark mode toggle, dropdown menus, mobile menu, routing) intact but give it a complete visual overhaul:
+
+**Visual Design Goals:**
+- Switch from a flat card background to a true frosted-glass effect: `backdrop-blur-xl bg-white/80 dark:bg-slate-900/80` with a subtle bottom border gradient instead of a plain border
+- Increase navbar height to `h-18` (72px) for a more spacious feel
+- Add a thin animated gradient accent line at the very top of the navbar (indigo → violet → purple, 2px tall)
+- Logo: give "Learnify" a larger, bolder gradient wordmark; animate the icon with a continuous slow float rather than only on hover
+- Nav links: replace plain text links with pill-style links that have a soft background on hover (`bg-indigo-50 dark:bg-indigo-950/40`); the active link should use a filled indigo pill (`bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300`) instead of just an underline indicator — remove the `layoutId="nav-underline"` underline approach
+- Add icons to each nav link (e.g. Home → `Home` icon, Courses → `BookOpen`, Instructors → `Users`, Dashboard → `LayoutDashboard`, Bookmarks → `Bookmark`, AI Features → `Sparkles`) shown at 14px alongside the label
+- Notification bell: style it as a rounded-xl button with a gradient background on hover; add a subtle ring pulse animation around the badge when unread count > 0
+- User avatar button: replace the initials circle with a more premium version — gradient ring border (`ring-2 ring-indigo-400/60`), slightly larger (36px), and show a small online status dot (green)
+- The user dropdown: add a gradient header section showing the user's avatar, name, role badge (color-coded: admin = amber, student = indigo), and a thin gradient divider before menu items; menu items get icons + hover with indigo accent background
+- Mobile menu: slide in from the top with a frosted glass background matching the navbar; group links into sections (Learn, Personal, Admin) with small section labels
+- Smooth scroll-aware behaviour: when the user scrolls down > 20px, add a stronger shadow (`shadow-lg shadow-slate-200/50 dark:shadow-slate-900/50`) and slightly increase backdrop blur — use a scroll event listener + useState for this
+- All transitions should use `duration-200` or spring physics via framer-motion where already used
+
+Check available packages at @/client/package.json. Preserve all import paths, hook usage (`useAuth`, `useNavigate`, `useLocation`), notification polling logic, and service calls unchanged — only the JSX structure and styling should change.

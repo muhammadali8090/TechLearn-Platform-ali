@@ -192,3 +192,47 @@ deps unchanged — skipping install
 15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.parseUpdate (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:11083:21)
 15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.parseMaybeUnary (/app/data/projects/6a0f27b6dee697aabacc6c1e/client/node_modules/@babel/parser/lib/index.js:11063:23)
 15|6a0f27b | 2026-05-21T16:15:41:       at JSXParserMixin.par
+
+========================================================================
+[2026-05-22 09:53:32 UTC]  NPM INSTALL CLIENT | skipped
+========================================================================
+deps unchanged — skipping install
+
+========================================================================
+[2026-05-22 09:53:32 UTC]  NPM INSTALL SERVER | skipped
+========================================================================
+deps unchanged — skipping install
+
+========================================================================
+[2026-05-22 09:53:50 UTC]  PM2 LOGS CLIENT | process_found=True
+========================================================================
+[TAILING] Tailing last 50 lines for [6a0f27b6dee697aabacc6c1e--client] process (change the value with --lines option)
+/root/.pm2/logs/6a0f27b6dee697aabacc6c1e--client-error-27.log last 50 lines:
+/root/.pm2/logs/6a0f27b6dee697aabacc6c1e--client-out-27.log last 50 lines:
+27|6a0f27b | 2026-05-22T09:49:55: 
+27|6a0f27b | 2026-05-22T09:49:55: > react-vite-app@1.0.0 start
+27|6a0f27b | 2026-05-22T09:49:55: > vite --force --host 0.0.0.0 --clearScreen false
+27|6a0f27b | 2026-05-22T09:49:55: 
+27|6a0f27b | 2026-05-22T09:49:56: {
+27|6a0f27b | 2026-05-22T09:49:56:   'import.meta.env.VITE_API_URL': '"https://6a0f27b6dee697aabacc6c1e.icod.ai/api"'
+27|6a0f27b | 2026-05-22T09:49:56: } this is the file
+27|6a0f27b | 2026-05-22T09:49:56: Forced re-optimization of dependencies
+27|6a0f27b | 2026-05-22T09:49:56: 
+27|6a0f27b | 2026-05-22T09:49:56:   VITE v5.4.21  ready in 255 ms
+27|6a0f27b | 2026-05-22T09:49:56: 
+27|6a0f27b | 2026-05-22T09:49:56:   ➜  Local:   http://localhost:3176/
+27|6a0f27b | 2026-05-22T09:49:56:   ➜  Network: http://10.42.0.40:3176/
+27|6a0f27b | 2026-05-22T09:52:46: 9:52:46 AM [vite] hmr update /src/components/Navbar.jsx, /src/index.css
+27|6a0f27b | 2026-05-22T09:53:33: 
+27|6a0f27b | 2026-05-22T09:53:33: > react-vite-app@1.0.0 start
+27|6a0f27b | 2026-05-22T09:53:33: > vite --force --host 0.0.0.0 --clearScreen false
+27|6a0f27b | 2026-05-22T09:53:33: 
+27|6a0f27b | 2026-05-22T09:53:33: {
+27|6a0f27b | 2026-05-22T09:53:33:   'import.meta.env.VITE_API_URL': '"https://6a0f27b6dee697aabacc6c1e.icod.ai/api"'
+27|6a0f27b | 2026-05-22T09:53:33: } this is the file
+27|6a0f27b | 2026-05-22T09:53:33: Forced re-optimization of dependencies
+27|6a0f27b | 2026-05-22T09:53:33: 
+27|6a0f27b | 2026-05-22T09:53:33:   VITE v5.4.21  ready in 244 ms
+27|6a0f27b | 2026-05-22T09:53:33: 
+27|6a0f27b | 2026-05-22T09:53:33:   ➜  Local:   http://localhost:3176/
+27|6a0f27b | 2026-05-22T09:53:33:   ➜  Network: http://10.42.0.40:3176/

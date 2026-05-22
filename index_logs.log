@@ -198,3 +198,21 @@ PHASE TIMINGS:
   total: 16.89s
 
 TOKENS: enrichment=26495in/6578out  embeddings=44119in
+
+========================================================================
+[2026-05-22 09:54:00 UTC]
+========================================================================
+REQUEST: 8b76928a9ce5
+OPERATION: reindex (1 file(s) submitted)
+
+INDEXED (1):
+  + client/src/components/Navbar.jsx  [2 chunk(s)]
+
+PHASE TIMINGS:
+  phase1_prepare: 0.024s
+  phase2_enrich: 2.54s
+  phase3_embed: 2.406s
+  phase4_write: 1.525s
+  total: 6.509s
+
+TOKENS: enrichment=1579in/318out  embeddings=7649in
