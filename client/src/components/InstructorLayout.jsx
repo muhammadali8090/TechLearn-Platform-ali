@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, BookOpen, Users, HelpCircle, Award, BarChart2,
-  Settings, ChevronLeft, Menu, X, LogOut, GraduationCap,
+  Settings, ChevronLeft, Menu, X, LogOut, GraduationCap, UserCircle,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
@@ -13,6 +13,7 @@ const navItems = [
   { to: '/instructor/students', label: 'Students', icon: Users },
   { to: '/instructor/quizzes', label: 'Quizzes', icon: HelpCircle },
   { to: '/instructor/certificates', label: 'Certificates', icon: Award },
+  { to: '/instructor/mentorship', label: 'Mentorship', icon: UserCircle },
 ];
 
 export default function InstructorLayout({ children }) {

@@ -4,6 +4,7 @@ import Exam from '../models/Exam.js';
 import User from '../models/User.js';
 import Progress from '../models/Progress.js';
 import { createNotification } from './notificationController.js';
+import { awardXP } from '../utils/awardXP.js';
 
 export const getCourses = async (req, res, next) => {
   try {
@@ -193,6 +194,7 @@ export const completeLesson = async (req, res, next) => {
         message: `You completed "${lesson?.title || 'a lesson'}" in ${courseDoc?.title || 'a course'}.`,
         link: `/learn/${courseDoc?.slug || courseId}?lesson=${lessonId}`,
       });
+      await awardXP(req.user._id, 'lesson_complete', courseId);
     }
 
     res.json({ success: true, data: progress });
@@ -246,6 +248,7 @@ export const submitQuiz = async (req, res, next) => {
         message: `Great job! You scored ${score}% on the quiz for "${lesson?.title || 'a lesson'}".`,
         link: `/learn/${(await Course.findById(courseId).select('slug'))?.slug || courseId}?lesson=${lessonId}`,
       });
+      await awardXP(req.user._id, 'quiz_passed', courseId);
     }
 
     res.json({ success: true, data: { score, correct, total: questions.length, questions: questionsWithAnswers } });

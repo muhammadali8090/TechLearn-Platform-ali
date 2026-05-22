@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   CheckCircle, Circle, ChevronLeft, ChevronRight, BookOpen, Code,
   HelpCircle, FileText, ExternalLink, Award, Menu, X, Play,
-  Bookmark, StickyNote, Zap, FileArchive, Download, Archive,
+  Bookmark, StickyNote, Zap, FileArchive, Download, Archive, Send,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
@@ -12,6 +12,9 @@ import {
   submitChallenge, downloadResource,
 } from '../services/courseService';
 import { addBookmark, removeBookmark, getBookmarks } from '../services/userService';
+import { getNotes, upsertNote } from '../services/noteService';
+import { saveResource, unsaveResource, getLibrary } from '../services/libraryService';
+import { createSubmission } from '../services/submissionService';
 import { useAuth } from '../hooks/useAuth';
 import ProgressBar from '../components/ProgressBar';
 
@@ -78,6 +81,12 @@ export default function CourseViewer() {
   // Video timestamp note
   const [timestampSeconds, setTimestampSeconds] = useState(0);
 
+  // Library saved resources
+  const [savedResources, setSavedResources] = useState(new Set());
+
+  // Peer review submission
+  const [peerSubmitOpen, setPeerSubmitOpen] = useState(false);
+
   const allLessons = course?.sections?.sort((a, b) => a.order - b.order).flatMap((s) => s.lessons) || [];
 
   useEffect(() => {
@@ -102,6 +111,15 @@ export default function CourseViewer() {
     if (course) {
       getCourseProgress(course._id).then((r) => setProgress(r.data.data)).catch(() => {});
       getBookmarks().then((r) => setBookmarks(r.data.data)).catch(() => {});
+      getLibrary().then((r) => {
+        const keys = new Set();
+        r.data.data.forEach((group) => {
+          group.resources?.forEach((res) => {
+            keys.add(`${res.lessonId?._id || res.lessonId}-${res.resourceIndex}`);
+          });
+        });
+        setSavedResources(keys);
+      }).catch(() => {});
     }
   }, [course]);
 
@@ -115,11 +133,20 @@ export default function CourseViewer() {
       setCodeInput(activeLesson.codingChallenge?.starterCode || '');
       setConfetti([]);
 
-      // Load note from localStorage
+      // Load note from API (fallback to localStorage)
       if (course) {
-        const saved = localStorage.getItem(`note-${course._id}-${activeLesson._id}`) || '';
-        setNoteText(saved);
-        setCharCount(saved.length);
+        getNotes({ lessonId: activeLesson._id })
+          .then((r) => {
+            const note = r.data.data?.[0];
+            const text = note?.content || localStorage.getItem(`note-${course._id}-${activeLesson._id}`) || '';
+            setNoteText(text);
+            setCharCount(text.length);
+          })
+          .catch(() => {
+            const saved = localStorage.getItem(`note-${course._id}-${activeLesson._id}`) || '';
+            setNoteText(saved);
+            setCharCount(saved.length);
+          });
       }
     }
   }, [activeLesson]);
@@ -202,8 +229,50 @@ export default function CourseViewer() {
     noteDebounceRef.current = setTimeout(() => {
       if (course && activeLesson) {
         localStorage.setItem(`note-${course._id}-${activeLesson._id}`, value);
+        upsertNote({ lessonId: activeLesson._id, courseId: course._id, content: value }).catch(() => {});
       }
-    }, 500);
+    }, 800);
+  };
+
+  const handleToggleSaveResource = async (resource, idx) => {
+    if (!course || !activeLesson) return;
+    const key = `${activeLesson._id}-${idx}`;
+    const isSaved = savedResources.has(key);
+    try {
+      if (isSaved) {
+        await unsaveResource({ lessonId: activeLesson._id, resourceIndex: idx });
+        setSavedResources((prev) => { const next = new Set(prev); next.delete(key); return next; });
+        toast.success('Removed from library');
+      } else {
+        await saveResource({
+          courseId: course._id,
+          lessonId: activeLesson._id,
+          resourceIndex: idx,
+          resourceName: resource.name,
+          url: resource.url,
+        });
+        setSavedResources((prev) => new Set([...prev, key]));
+        toast.success('Saved to library!');
+      }
+    } catch {
+      toast.error('Failed to update library');
+    }
+  };
+
+  const handlePeerSubmit = async () => {
+    if (!course || !activeLesson || !codeInput.trim()) return;
+    try {
+      await createSubmission({
+        lessonId: activeLesson._id,
+        courseId: course._id,
+        code: codeInput,
+        language: activeLesson.codingChallenge?.language || 'javascript',
+      });
+      setPeerSubmitOpen(false);
+      toast.success('Submitted for peer review!');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to submit');
+    }
   };
 
   const handleSaveTimestampNote = () => {
@@ -679,20 +748,35 @@ export default function CourseViewer() {
                                 )}
                               </div>
                             </div>
-                            <motion.button
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                              onClick={() => handleResourceDownload(r, i)}
-                              disabled={isDownloading}
-                              className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-colors disabled:opacity-60 flex-shrink-0"
-                            >
-                              {isDownloading ? (
-                                <div className="w-3.5 h-3.5 border-2 border-white/50 border-t-white rounded-full animate-spin" />
-                              ) : (
-                                <Download className="w-3.5 h-3.5" />
-                              )}
-                              {isDownloading ? 'Opening...' : 'Download'}
-                            </motion.button>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => handleToggleSaveResource(r, i)}
+                                title={savedResources.has(`${lessonData._id}-${i}`) ? 'Remove from library' : 'Save to library'}
+                                className={`p-2 rounded-xl border transition-colors ${
+                                  savedResources.has(`${lessonData._id}-${i}`)
+                                    ? 'bg-emerald-100 dark:bg-emerald-900/40 border-emerald-300 dark:border-emerald-700 text-emerald-600 dark:text-emerald-400'
+                                    : 'border-[var(--border)] text-[var(--text-muted)] hover:text-emerald-500 hover:border-emerald-300'
+                                }`}
+                              >
+                                <Bookmark className="w-3.5 h-3.5" fill={savedResources.has(`${lessonData._id}-${i}`) ? 'currentColor' : 'none'} />
+                              </motion.button>
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => handleResourceDownload(r, i)}
+                                disabled={isDownloading}
+                                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-colors disabled:opacity-60"
+                              >
+                                {isDownloading ? (
+                                  <div className="w-3.5 h-3.5 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+                                ) : (
+                                  <Download className="w-3.5 h-3.5" />
+                                )}
+                                {isDownloading ? 'Opening...' : 'Download'}
+                              </motion.button>
+                            </div>
                           </motion.div>
                         );
                       })}
@@ -854,17 +938,29 @@ export default function CourseViewer() {
                       </motion.div>
                     )}
 
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.97 }}
-                      onClick={handleChallengeSubmit}
-                      className="relative overflow-hidden bg-gradient-to-r from-indigo-500 via-violet-500 to-indigo-500 bg-[length:200%] text-white font-semibold px-6 py-2.5 rounded-xl hover:animate-gradient-shift transition-all shadow-md shadow-indigo-500/25"
-                    >
-                      <span className="relative z-10 flex items-center gap-2">
-                        <Code className="w-4 h-4" />
-                        Run Code
-                      </span>
-                    </motion.button>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={handleChallengeSubmit}
+                        className="relative overflow-hidden bg-gradient-to-r from-indigo-500 via-violet-500 to-indigo-500 bg-[length:200%] text-white font-semibold px-6 py-2.5 rounded-xl hover:animate-gradient-shift transition-all shadow-md shadow-indigo-500/25"
+                      >
+                        <span className="relative z-10 flex items-center gap-2">
+                          <Code className="w-4 h-4" />
+                          Run Code
+                        </span>
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={handlePeerSubmit}
+                        disabled={!codeInput.trim()}
+                        className="flex items-center gap-2 border border-violet-300 dark:border-violet-700 text-violet-600 dark:text-violet-400 font-semibold px-5 py-2.5 rounded-xl hover:bg-violet-50 dark:hover:bg-violet-900/30 disabled:opacity-50 transition-colors text-sm"
+                      >
+                        <Zap className="w-4 h-4" />
+                        Submit for Peer Review
+                      </motion.button>
+                    </div>
                   </div>
                 )}
 

@@ -216,3 +216,101 @@ PHASE TIMINGS:
   total: 6.509s
 
 TOKENS: enrichment=1579in/318out  embeddings=7649in
+
+========================================================================
+[2026-05-22 10:01:12 UTC]
+========================================================================
+REQUEST: 0a373c712be0
+OPERATION: reindex (1 file(s) submitted)
+
+INDEXED (1):
+  + client/src/pages/Home.jsx  [3 chunk(s)]
+
+PHASE TIMINGS:
+  phase1_prepare: 0.018s
+  phase2_enrich: 2.975s
+  phase3_embed: 0.736s
+  phase4_write: 1.295s
+  total: 5.034s
+
+TOKENS: enrichment=2250in/468out  embeddings=5729in
+
+========================================================================
+[2026-05-22 12:02:45 UTC]
+========================================================================
+REQUEST: 315768dbb777
+OPERATION: reindex (61 file(s) submitted)
+
+INDEXED (59):
+  + client/src/pages/Challenges.jsx  [3 chunk(s)]
+  + client/src/pages/CourseForum.jsx  [4 chunk(s)]
+  + client/src/pages/InstructorMentorship.jsx  [3 chunk(s)]
+  + client/src/pages/Leaderboard.jsx  [3 chunk(s)]
+  + client/src/pages/Library.jsx  [3 chunk(s)]
+  + client/src/pages/Mentorship.jsx  [3 chunk(s)]
+  + client/src/pages/MyNotes.jsx  [2 chunk(s)]
+  + client/src/pages/PeerReview.jsx  [4 chunk(s)]
+  + client/src/pages/StudyRooms.jsx  [3 chunk(s)]
+  + client/src/pages/UserProfile.jsx  [2 chunk(s)]
+  + client/src/services/challengeService.js  [4 chunk(s)]
+  + client/src/services/forumService.js  [4 chunk(s)]
+  + client/src/services/leaderboardService.js  [1 chunk(s)]
+  + client/src/services/libraryService.js  [3 chunk(s)]
+  + client/src/services/mentorshipService.js  [5 chunk(s)]
+  + client/src/services/noteService.js  [3 chunk(s)]
+  + client/src/services/profileService.js  [2 chunk(s)]
+  + client/src/services/reviewService.js  [3 chunk(s)]
+  + client/src/services/studyRoomService.js  [6 chunk(s)]
+  + client/src/services/submissionService.js  [3 chunk(s)]
+  + server/src/controllers/challengeController.js  [4 chunk(s)]
+  + server/src/controllers/codeSubmissionController.js  [3 chunk(s)]
+  + server/src/controllers/forumController.js  [4 chunk(s)]
+  + server/src/controllers/leaderboardController.js  [2 chunk(s)]
+  + server/src/controllers/libraryController.js  [3 chunk(s)]
+  + server/src/controllers/mentorshipController.js  [5 chunk(s)]
+  + server/src/controllers/noteController.js  [3 chunk(s)]
+  + server/src/controllers/profileController.js  [2 chunk(s)]
+  + server/src/controllers/reviewController.js  [3 chunk(s)]
+  + server/src/controllers/studyRoomController.js  [6 chunk(s)]
+  + server/src/models/CodeSubmission.js  [1 chunk(s)]
+  + server/src/models/ForumPost.js  [1 chunk(s)]
+  + server/src/models/MentorRequest.js  [1 chunk(s)]
+  + server/src/models/Note.js  [1 chunk(s)]
+  + server/src/models/Review.js  [1 chunk(s)]
+  + server/src/models/SavedResource.js  [1 chunk(s)]
+  + server/src/models/StudyRoom.js  [1 chunk(s)]
+  + server/src/models/WeeklyChallenge.js  [1 chunk(s)]
+  + server/src/models/XPEvent.js  [1 chunk(s)]
+  + server/src/routes/challengeRoutes.js  [1 chunk(s)]
+  + server/src/routes/forumRoutes.js  [1 chunk(s)]
+  + server/src/routes/leaderboardRoutes.js  [1 chunk(s)]
+  + server/src/routes/libraryRoutes.js  [1 chunk(s)]
+  + server/src/routes/mentorshipRoutes.js  [1 chunk(s)]
+  + server/src/routes/noteRoutes.js  [1 chunk(s)]
+  + server/src/routes/profileRoutes.js  [1 chunk(s)]
+  + server/src/routes/reviewRoutes.js  [1 chunk(s)]
+  + server/src/routes/studyRoomRoutes.js  [1 chunk(s)]
+  + server/src/routes/submissionRoutes.js  [1 chunk(s)]
+  + server/src/utils/awardXP.js  [1 chunk(s)]
+  + client/src/App.jsx  [1 chunk(s)]
+  + client/src/components/InstructorLayout.jsx  [1 chunk(s)]
+  + client/src/pages/CourseDetail.jsx  [1 chunk(s)]
+  + server/src/controllers/courseController.js  [12 chunk(s)]
+  + server/src/controllers/examController.js  [4 chunk(s)]
+  + server/src/index.js  [3 chunk(s)]
+  + server/src/models/Course.js  [1 chunk(s)]
+  + server/src/models/User.js  [1 chunk(s)]
+  + server/src/routes/courseRoutes.js  [1 chunk(s)]
+
+FAILED (2):
+  ✗ client/src/components/Navbar.jsx
+  ✗ client/src/pages/CourseViewer.jsx
+
+PHASE TIMINGS:
+  phase1_prepare: 0.469s
+  phase2_enrich: 32.056s
+  phase3_embed: 29.414s
+  phase4_write: 13.842s
+  total: 75.803s
+
+TOKENS: enrichment=62641in/22295out  embeddings=72419in

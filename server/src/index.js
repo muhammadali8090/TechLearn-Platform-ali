@@ -25,6 +25,15 @@ import adminRoutes from './routes/adminRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import instructorPanelRoutes from './routes/instructorPanelRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
+import forumRoutes from './routes/forumRoutes.js';
+import studyRoomRoutes from './routes/studyRoomRoutes.js';
+import leaderboardRoutes from './routes/leaderboardRoutes.js';
+import noteRoutes from './routes/noteRoutes.js';
+import submissionRoutes from './routes/submissionRoutes.js';
+import challengeRoutes from './routes/challengeRoutes.js';
+import profileRoutes from './routes/profileRoutes.js';
+import libraryRoutes from './routes/libraryRoutes.js';
+import mentorshipRoutes from './routes/mentorshipRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
 
 import { DEMO_USERS } from './config/demoUsers.js';
@@ -43,6 +52,15 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/instructor-panel', instructorPanelRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api', forumRoutes);
+app.use('/api/study-rooms', studyRoomRoutes);
+app.use('/api/leaderboard', leaderboardRoutes);
+app.use('/api/notes', noteRoutes);
+app.use('/api/submissions', submissionRoutes);
+app.use('/api/challenges', challengeRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/library', libraryRoutes);
+app.use('/api/mentorship', mentorshipRoutes);
 
 app.use(errorHandler);
 

@@ -31,6 +31,16 @@ import AIRoadmap from './pages/AIRoadmap';
 import AIChat from './pages/AIChat';
 import AISkillTracker from './pages/AISkillTracker';
 import AIQuizGenerator from './pages/AIQuizGenerator';
+import CourseForum from './pages/CourseForum';
+import StudyRooms from './pages/StudyRooms';
+import Leaderboard from './pages/Leaderboard';
+import MyNotes from './pages/MyNotes';
+import PeerReview from './pages/PeerReview';
+import Challenges from './pages/Challenges';
+import UserProfile from './pages/UserProfile';
+import Library from './pages/Library';
+import Mentorship from './pages/Mentorship';
+import InstructorMentorship from './pages/InstructorMentorship';
 
 export default function App() {
   return (
@@ -128,6 +138,43 @@ export default function App() {
           <Route
             path="/ai/quiz-generator"
             element={<AdminRoute><AIQuizGenerator /></AdminRoute>}
+          />
+          <Route
+            path="/courses/:slug/forum"
+            element={<ProtectedRoute><CourseForum /></ProtectedRoute>}
+          />
+          <Route
+            path="/study-rooms"
+            element={<ProtectedRoute><StudyRooms /></ProtectedRoute>}
+          />
+          <Route
+            path="/leaderboard"
+            element={<ProtectedRoute><Leaderboard /></ProtectedRoute>}
+          />
+          <Route
+            path="/notes"
+            element={<ProtectedRoute><MyNotes /></ProtectedRoute>}
+          />
+          <Route
+            path="/peer-review"
+            element={<ProtectedRoute><PeerReview /></ProtectedRoute>}
+          />
+          <Route
+            path="/challenges"
+            element={<ProtectedRoute><Challenges /></ProtectedRoute>}
+          />
+          <Route path="/profile/:userId" element={<UserProfile />} />
+          <Route
+            path="/library"
+            element={<ProtectedRoute><Library /></ProtectedRoute>}
+          />
+          <Route
+            path="/mentorship"
+            element={<ProtectedRoute><Mentorship /></ProtectedRoute>}
+          />
+          <Route
+            path="/instructor/mentorship"
+            element={<AdminRoute><InstructorMentorship /></AdminRoute>}
           />
           <Route path="*" element={<NotFound />} />
         </Routes>

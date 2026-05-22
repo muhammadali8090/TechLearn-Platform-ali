@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Clock, Users, BookOpen, BarChart3, ChevronDown, ChevronRight, Lock, Play, Award } from 'lucide-react';
+import { Clock, Users, BookOpen, BarChart3, ChevronDown, ChevronRight, Lock, Play, Award, MessageSquare, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getCourseBySlug, enrollCourse } from '../services/courseService';
+import { getCourseReviews, createReview } from '../services/reviewService';
 import { useAuth } from '../hooks/useAuth';
 import Navbar from '../components/Navbar';
 
@@ -21,13 +22,43 @@ export default function CourseDetail() {
   const [activeTab, setActiveTab] = useState('overview');
   const [openSections, setOpenSections] = useState({});
   const [enrolling, setEnrolling] = useState(false);
+  const [reviews, setReviews] = useState([]);
+  const [reviewsData, setReviewsData] = useState(null);
+  const [myRating, setMyRating] = useState(0);
+  const [myComment, setMyComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
     getCourseBySlug(slug)
-      .then((r) => { setCourse(r.data.data); })
+      .then((r) => {
+        setCourse(r.data.data);
+        return getCourseReviews(r.data.data._id);
+      })
+      .then((r) => {
+        setReviewsData(r.data.data);
+        setReviews(r.data.data.reviews || []);
+      })
       .catch(() => toast.error('Course not found'))
       .finally(() => setLoading(false));
   }, [slug]);
+
+  const handleSubmitReview = async () => {
+    if (!myRating) { toast.error('Please select a rating'); return; }
+    setSubmittingReview(true);
+    try {
+      const r = await createReview(course._id, { rating: myRating, comment: myComment });
+      setReviews((prev) => {
+        const exists = prev.findIndex((rv) => rv.userId?._id === user?._id);
+        if (exists >= 0) { const updated = [...prev]; updated[exists] = r.data.data; return updated; }
+        return [r.data.data, ...prev];
+      });
+      toast.success('Review submitted!');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to submit review');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   const isEnrolled = user?.enrolledCourses?.some((e) => {
     const id = e.courseId?._id || e.courseId;
@@ -155,14 +186,14 @@ export default function CourseDetail() {
       {/* Tabs */}
       <div className="bg-white border-b border-slate-200 sticky top-16 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-1">
-            {['overview', 'curriculum', 'instructor'].map((t) => (
+          <div className="flex gap-1 overflow-x-auto">
+            {['overview', 'curriculum', 'instructor', 'reviews', 'forum'].map((t) => (
               <button
                 key={t}
                 onClick={() => setActiveTab(t)}
-                className={`px-6 py-4 font-semibold text-sm capitalize transition-colors ${activeTab === t ? 'text-indigo-600 border-b-2 border-indigo-500' : 'text-slate-500 hover:text-slate-700'}`}
+                className={`px-6 py-4 font-semibold text-sm capitalize transition-colors whitespace-nowrap ${activeTab === t ? 'text-indigo-600 border-b-2 border-indigo-500' : 'text-slate-500 hover:text-slate-700'}`}
               >
-                {t}
+                {t === 'reviews' ? `Reviews${reviews.length > 0 ? ` (${reviews.length})` : ''}` : t}
               </button>
             ))}
           </div>
@@ -244,6 +275,112 @@ export default function CourseDetail() {
                 )}
               </div>
             ))}
+          </div>
+        )}
+
+        {activeTab === 'reviews' && (
+          <div className="max-w-3xl">
+            <h2 className="text-2xl font-bold text-slate-900 mb-6">Student Reviews</h2>
+            {reviewsData && (
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
+                <div className="flex items-center gap-6">
+                  <div className="text-center">
+                    <div className="text-5xl font-extrabold text-slate-900">{reviewsData.avg || '—'}</div>
+                    <div className="flex gap-0.5 justify-center mt-1">
+                      {[1,2,3,4,5].map((s) => (
+                        <Star key={s} className={`w-4 h-4 ${s <= Math.round(reviewsData.avg) ? 'text-amber-400 fill-amber-400' : 'text-slate-200'}`} />
+                      ))}
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">{reviewsData.total} reviews</p>
+                  </div>
+                  <div className="flex-1">
+                    {[5,4,3,2,1].map((star) => (
+                      <div key={star} className="flex items-center gap-2 mb-1">
+                        <span className="text-xs text-slate-500 w-3">{star}</span>
+                        <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-amber-400 rounded-full"
+                            style={{ width: reviewsData.total > 0 ? `${((reviewsData.histogram?.[star] || 0) / reviewsData.total) * 100}%` : '0%' }}
+                          />
+                        </div>
+                        <span className="text-xs text-slate-500 w-5">{reviewsData.histogram?.[star] || 0}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            {isEnrolled && user && (
+              <div className="bg-white rounded-2xl border border-slate-200 p-5 mb-6">
+                <h3 className="font-semibold text-slate-800 mb-3">Leave a Review</h3>
+                <div className="flex gap-1 mb-3">
+                  {[1,2,3,4,5].map((s) => (
+                    <button key={s} onClick={() => setMyRating(s)} className="transition-transform hover:scale-110">
+                      <Star className={`w-6 h-6 ${s <= myRating ? 'text-amber-400 fill-amber-400' : 'text-slate-300'}`} />
+                    </button>
+                  ))}
+                </div>
+                <textarea
+                  value={myComment} onChange={(e) => setMyComment(e.target.value)}
+                  placeholder="Share your experience..."
+                  rows={3}
+                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                />
+                <button
+                  onClick={handleSubmitReview}
+                  disabled={submittingReview}
+                  className="mt-3 bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-5 py-2 rounded-xl font-semibold text-sm hover:opacity-90 disabled:opacity-50 transition-opacity"
+                >
+                  {submittingReview ? 'Submitting...' : 'Submit Review'}
+                </button>
+              </div>
+            )}
+            {reviews.length === 0 ? (
+              <div className="text-center py-12">
+                <MessageSquare className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-500">No reviews yet. Be the first to review!</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {reviews.map((review) => (
+                  <div key={review._id} className="bg-white rounded-2xl border border-slate-200 p-5">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-violet-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                        {review.userId?.name?.charAt(0).toUpperCase() || '?'}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-semibold text-slate-800 text-sm">{review.userId?.name}</span>
+                          <span className="text-xs text-slate-400">{new Date(review.createdAt).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex gap-0.5 mb-2">
+                          {[1,2,3,4,5].map((s) => (
+                            <Star key={s} className={`w-3.5 h-3.5 ${s <= review.rating ? 'text-amber-400 fill-amber-400' : 'text-slate-200'}`} />
+                          ))}
+                        </div>
+                        {review.comment && <p className="text-sm text-slate-600">{review.comment}</p>}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'forum' && course && (
+          <div className="max-w-3xl">
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 text-center">
+              <MessageSquare className="w-10 h-10 text-indigo-400 mx-auto mb-3" />
+              <h3 className="font-bold text-slate-800 mb-2">Course Discussion Forum</h3>
+              <p className="text-slate-500 text-sm mb-4">Ask questions and connect with other students in this course.</p>
+              <Link
+                to={`/courses/${slug}/forum`}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-violet-600 text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity"
+              >
+                <MessageSquare className="w-4 h-4" /> Open Forum
+              </Link>
+            </div>
           </div>
         )}
 

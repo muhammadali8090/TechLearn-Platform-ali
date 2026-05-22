@@ -236,3 +236,112 @@ deps unchanged — skipping install
 27|6a0f27b | 2026-05-22T09:53:33: 
 27|6a0f27b | 2026-05-22T09:53:33:   ➜  Local:   http://localhost:3176/
 27|6a0f27b | 2026-05-22T09:53:33:   ➜  Network: http://10.42.0.40:3176/
+
+========================================================================
+[2026-05-22 10:00:45 UTC]  NPM INSTALL CLIENT | skipped
+========================================================================
+deps unchanged — skipping install
+
+========================================================================
+[2026-05-22 10:00:45 UTC]  NPM INSTALL SERVER | skipped
+========================================================================
+deps unchanged — skipping install
+
+========================================================================
+[2026-05-22 10:01:03 UTC]  PM2 LOGS CLIENT | process_found=True
+========================================================================
+[TAILING] Tailing last 50 lines for [6a0f27b6dee697aabacc6c1e--client] process (change the value with --lines option)
+/root/.pm2/logs/6a0f27b6dee697aabacc6c1e--client-error-29.log last 50 lines:
+/root/.pm2/logs/6a0f27b6dee697aabacc6c1e--client-out-29.log last 50 lines:
+29|6a0f27b | 2026-05-22T09:54:02: 
+29|6a0f27b | 2026-05-22T09:54:02: > react-vite-app@1.0.0 start
+29|6a0f27b | 2026-05-22T09:54:02: > vite --force --host 0.0.0.0 --clearScreen false
+29|6a0f27b | 2026-05-22T09:54:02: 
+29|6a0f27b | 2026-05-22T09:54:02: {
+29|6a0f27b | 2026-05-22T09:54:02:   'import.meta.env.VITE_API_URL': '"https://6a0f27b6dee697aabacc6c1e.icod.ai/api"'
+29|6a0f27b | 2026-05-22T09:54:02: } this is the file
+29|6a0f27b | 2026-05-22T09:54:02: Forced re-optimization of dependencies
+29|6a0f27b | 2026-05-22T09:54:02: 
+29|6a0f27b | 2026-05-22T09:54:02:   VITE v5.4.21  ready in 248 ms
+29|6a0f27b | 2026-05-22T09:54:02: 
+29|6a0f27b | 2026-05-22T09:54:02:   ➜  Local:   http://localhost:3176/
+29|6a0f27b | 2026-05-22T09:54:02:   ➜  Network: http://10.42.0.40:3176/
+29|6a0f27b | 2026-05-22T10:00:33: 10:00:33 AM [vite] hmr update /src/pages/Home.jsx, /src/index.css
+29|6a0f27b | 2026-05-22T10:00:37: 10:00:37 AM [vite] hmr update /src/pages/Home.jsx, /src/index.css
+29|6a0f27b | 2026-05-22T10:00:40: 10:00:40 AM [vite] hmr update /src/pages/Home.jsx, /src/index.css
+29|6a0f27b | 2026-05-22T10:00:46: 
+29|6a0f27b | 2026-05-22T10:00:46: > react-vite-app@1.0.0 start
+29|6a0f27b | 2026-05-22T10:00:46: > vite --force --host 0.0.0.0 --clearScreen false
+29|6a0f27b | 2026-05-22T10:00:46: 
+29|6a0f27b | 2026-05-22T10:00:46: {
+29|6a0f27b | 2026-05-22T10:00:46:   'import.meta.env.VITE_API_URL': '"https://6a0f27b6dee697aabacc6c1e.icod.ai/api"'
+29|6a0f27b | 2026-05-22T10:00:46: } this is the file
+29|6a0f27b | 2026-05-22T10:00:46: Forced re-optimization of dependencies
+29|6a0f27b | 2026-05-22T10:00:46: 
+29|6a0f27b | 2026-05-22T10:00:46:   VITE v5.4.21  ready in 254 ms
+29|6a0f27b | 2026-05-22T10:00:46: 
+29|6a0f27b | 2026-05-22T10:00:46:   ➜  Local:   http://localhost:3176/
+29|6a0f27b | 2026-05-22T10:00:46:   ➜  Network: http://10.42.0.40:3176/
+
+========================================================================
+[2026-05-22 12:01:07 UTC]  NPM INSTALL CLIENT | skipped
+========================================================================
+deps unchanged — skipping install
+
+========================================================================
+[2026-05-22 12:01:07 UTC]  NPM INSTALL SERVER | skipped
+========================================================================
+deps unchanged — skipping install
+
+========================================================================
+[2026-05-22 12:01:25 UTC]  PM2 LOGS CLIENT | process_found=True
+========================================================================
+[TAILING] Tailing last 80 lines for [6a0f27b6dee697aabacc6c1e--client] process (change the value with --lines option)
+/root/.pm2/logs/6a0f27b6dee697aabacc6c1e--client-error-51.log last 80 lines:
+/root/.pm2/logs/6a0f27b6dee697aabacc6c1e--client-out-51.log last 80 lines:
+51|6a0f27b | 2026-05-22T11:35:01: 
+51|6a0f27b | 2026-05-22T11:35:01: > react-vite-app@1.0.0 start
+51|6a0f27b | 2026-05-22T11:35:01: > vite --force --host 0.0.0.0 --clearScreen false
+51|6a0f27b | 2026-05-22T11:35:01: 
+51|6a0f27b | 2026-05-22T11:35:01: {
+51|6a0f27b | 2026-05-22T11:35:01:   'import.meta.env.VITE_API_URL': '"https://6a0f27b6dee697aabacc6c1e.icod.ai/api"'
+51|6a0f27b | 2026-05-22T11:35:01: } this is the file
+51|6a0f27b | 2026-05-22T11:35:01: Forced re-optimization of dependencies
+51|6a0f27b | 2026-05-22T11:35:01: 
+51|6a0f27b | 2026-05-22T11:35:01:   VITE v5.4.21  ready in 246 ms
+51|6a0f27b | 2026-05-22T11:35:01: 
+51|6a0f27b | 2026-05-22T11:35:01:   ➜  Local:   http://localhost:3176/
+51|6a0f27b | 2026-05-22T11:35:01:   ➜  Network: http://10.42.0.40:3176/
+51|6a0f27b | 2026-05-22T11:54:15: 11:54:15 AM [vite] hmr update /src/pages/CourseDetail.jsx, /src/index.css
+51|6a0f27b | 2026-05-22T11:54:21: 11:54:21 AM [vite] hmr update /src/pages/CourseDetail.jsx, /src/index.css
+51|6a0f27b | 2026-05-22T11:54:28: 11:54:28 AM [vite] hmr update /src/pages/CourseDetail.jsx, /src/index.css
+51|6a0f27b | 2026-05-22T11:54:36: 11:54:36 AM [vite] hmr update /src/pages/CourseDetail.jsx, /src/index.css
+51|6a0f27b | 2026-05-22T11:54:59: 11:54:59 AM [vite] hmr update /src/pages/CourseDetail.jsx, /src/index.css
+51|6a0f27b | 2026-05-22T11:55:07: 11:55:07 AM [vite] hmr update /src/App.jsx, /src/index.css
+51|6a0f27b | 2026-05-22T11:55:14: 11:55:14 AM [vite] hmr update /src/App.jsx, /src/index.css
+51|6a0f27b | 2026-05-22T11:55:21: 11:55:21 AM [vite] hmr update /src/components/Navbar.jsx, /src/index.css
+51|6a0f27b | 2026-05-22T11:55:28: 11:55:28 AM [vite] hmr update /src/components/Navbar.jsx, /src/index.css
+51|6a0f27b | 2026-05-22T11:55:33: 11:55:33 AM [vite] hmr update /src/components/Navbar.jsx, /src/index.css
+51|6a0f27b | 2026-05-22T11:55:50: 11:55:50 AM [vite] hmr update /src/components/Navbar.jsx, /src/index.css
+51|6a0f27b | 2026-05-22T11:56:02: 11:56:02 AM [vite] hmr update /src/components/Navbar.jsx, /src/index.css
+51|6a0f27b | 2026-05-22T11:56:11: 11:56:11 AM [vite] hmr update /src/components/Navbar.jsx, /src/index.css
+51|6a0f27b | 2026-05-22T11:56:26: 11:56:26 AM [vite] hmr update /src/components/Navbar.jsx, /src/index.css
+51|6a0f27b | 2026-05-22T11:56:34: 11:56:34 AM [vite] hmr update /src/components/Navbar.jsx, /src/index.css
+51|6a0f27b | 2026-05-22T11:56:39: 11:56:39 AM [vite] hmr update /src/components/Navbar.jsx, /src/index.css
+51|6a0f27b | 2026-05-22T11:57:00: 11:57:00 AM [vite] hmr update /src/pages/CourseViewer.jsx, /src/index.css
+51|6a0f27b | 2026-05-22T11:57:08: 11:57:08 AM [vite] hmr update /src/pages/CourseViewer.jsx, /src/index.css
+51|6a0f27b | 2026-05-22T11:57:14: 11:57:14 AM [vit
+
+========================================================================
+[2026-05-22 12:01:25 UTC]  PM2 LOGS SERVER | process_found=True
+========================================================================
+[TAILING] Tailing last 80 lines for [6a0f27b6dee697aabacc6c1e--server] process (change the value with --lines option)
+/root/.pm2/logs/6a0f27b6dee697aabacc6c1e--server-error-50.log last 80 lines:
+/root/.pm2/logs/6a0f27b6dee697aabacc6c1e--server-out-50.log last 80 lines:
+50|6a0f27b | 2026-05-22T12:01:07: 
+50|6a0f27b | 2026-05-22T12:01:07: > express-mongo-app@1.0.0 start
+50|6a0f27b | 2026-05-22T12:01:07: > node ./src/index.js
+50|6a0f27b | 2026-05-22T12:01:07: 
+50|6a0f27b | 2026-05-22T12:01:08: Connected to MongoDB
+50|6a0f27b | 2026-05-22T12:01:08: Seeding complete
+50|6a0f27b | 2026-05-22T12:01:08: Server listening on port 3177

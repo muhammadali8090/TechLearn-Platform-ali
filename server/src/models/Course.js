@@ -21,6 +21,7 @@ const courseSchema = new mongoose.Schema(
     sections: [sectionSchema],
     finalExam: { type: mongoose.Schema.Types.ObjectId, ref: 'Exam' },
     enrolledCount: { type: Number, default: 0 },
+    avgRating: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

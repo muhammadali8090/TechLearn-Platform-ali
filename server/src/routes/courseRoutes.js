@@ -6,6 +6,8 @@ import {
 } from '../controllers/courseController.js';
 import { submitExam, getExamAttempts, createExam, getExam } from '../controllers/examController.js';
 import { createLesson, updateLesson, getLesson, deleteLesson } from '../controllers/lessonController.js';
+import { getCourseReviews, createReview, deleteReview } from '../controllers/reviewController.js';
+import { getForumPosts, createForumPost } from '../controllers/forumController.js';
 import { protect, adminOnly } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -35,5 +37,14 @@ router.get('/:courseId/exam', protect, getExam);
 router.post('/:courseId/exam', protect, adminOnly, createExam);
 router.post('/:courseId/exam/attempt', protect, submitExam);
 router.get('/:courseId/exam/attempts', protect, getExamAttempts);
+
+// Reviews
+router.get('/:id/reviews', getCourseReviews);
+router.post('/:id/reviews', protect, createReview);
+router.delete('/:id/reviews/:reviewId', protect, deleteReview);
+
+// Forum
+router.get('/:id/forum', protect, getForumPosts);
+router.post('/:id/forum', protect, createForumPost);
 
 export default router;

@@ -4,6 +4,7 @@ import ExamAttempt from '../models/ExamAttempt.js';
 import Course from '../models/Course.js';
 import User from '../models/User.js';
 import { createNotification } from './notificationController.js';
+import { awardXP } from '../utils/awardXP.js';
 
 export const submitExam = async (req, res, next) => {
   try {
@@ -54,6 +55,7 @@ export const submitExam = async (req, res, next) => {
           message: `Congratulations! You earned a certificate for completing "${course.title}".`,
           link: `/certificate/${certificateId}`,
         });
+        await awardXP(req.user._id, 'course_complete', courseId);
       } else {
         const existing = user.certificates.find((c) => c.courseId.toString() === courseId);
         certificate = { certificateId: existing.certificateId, issuedAt: existing.issuedAt };

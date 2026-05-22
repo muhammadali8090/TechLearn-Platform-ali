@@ -181,7 +181,7 @@ export default function Home() {
               className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2 text-sm font-medium mb-6"
             >
               <Zap className="w-4 h-4 text-yellow-300" />
-              100% Free — No Subscription Required
+              Start Learning Today — Zero Cost
             </motion.div>
 
             <motion.h1
@@ -190,9 +190,9 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
             >
-              Learn Programming.
+              Code. Build.
               <br />
-              <span className="text-yellow-300">Land Your Dream Job.</span>
+              <span className="text-yellow-300">Change Your Future.</span>
             </motion.h1>
 
             <motion.p
@@ -201,8 +201,8 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              Master coding with structured courses, real projects, and hands-on challenges.
-              Pass your final exam and earn a verified certificate — completely free.
+              Gain real-world skills through expert-led courses, hands-on projects, and coding challenges.
+              Earn a verified certificate — 100% free.
             </motion.p>
 
             <motion.div

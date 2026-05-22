@@ -5,7 +5,8 @@ import { useAuth } from '../hooks/useAuth';
 import {
   BookOpen, ChevronDown, LayoutDashboard, LogOut, Settings, Menu, X,
   Bell, Bookmark, CheckCircle, Star, Code, Award, BookOpen as EnrollIcon,
-  Trash2, GraduationCap, Sparkles, Home, Users,
+  Trash2, GraduationCap, Sparkles, Home, Users, Trophy, Zap, BookMarked,
+  UserCircle, MessageSquare, Coffee,
 } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import {
@@ -51,6 +52,7 @@ export default function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
+  const [communityOpen, setCommunityOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [scrolled, setScrolled] = useState(false);
@@ -83,6 +85,7 @@ export default function Navbar() {
   const handleBellClick = () => {
     setBellOpen((v) => !v);
     setDropdownOpen(false);
+    setCommunityOpen(false);
   };
 
   const handleNotifClick = async (notif) => {
@@ -231,6 +234,56 @@ export default function Navbar() {
                   <Sparkles className="w-3.5 h-3.5" />
                   AI Features
                 </Link>
+              )}
+
+              {/* Community Dropdown */}
+              {user && (
+                <div className="relative">
+                  <button
+                    onClick={() => { setCommunityOpen((v) => !v); setDropdownOpen(false); setBellOpen(false); }}
+                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full font-medium text-sm transition-all duration-200 ${
+                      communityOpen
+                        ? 'bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 shadow-sm'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:text-indigo-600 dark:hover:text-indigo-400'
+                    }`}
+                  >
+                    <Users className="w-3.5 h-3.5" />
+                    Community
+                    <motion.span animate={{ rotate: communityOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                      <ChevronDown className="w-3 h-3 ml-0.5" />
+                    </motion.span>
+                  </button>
+                  <AnimatePresence>
+                    {communityOpen && (
+                      <motion.div
+                        variants={dropdownVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        style={{ transformOrigin: 'top left' }}
+                        className="absolute left-0 mt-2 w-52 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/40 dark:border-slate-700/50 overflow-hidden z-50 py-1.5"
+                      >
+                        {[
+                          { to: '/leaderboard', icon: Trophy, label: 'Leaderboard', color: 'text-amber-500' },
+                          { to: '/study-rooms', icon: Coffee, label: 'Study Rooms', color: 'text-emerald-500' },
+                          { to: '/challenges', icon: Zap, label: 'Challenges', color: 'text-orange-500' },
+                          { to: '/peer-review', icon: Code, label: 'Peer Review', color: 'text-violet-500' },
+                          { to: '/mentorship', icon: UserCircle, label: 'Mentorship', color: 'text-blue-500' },
+                        ].map(({ to, icon: Icon, label, color }) => (
+                          <Link
+                            key={to}
+                            to={to}
+                            onClick={() => setCommunityOpen(false)}
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-150"
+                          >
+                            <Icon className={`w-4 h-4 ${color}`} />
+                            {label}
+                          </Link>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               )}
             </div>
 
@@ -398,6 +451,15 @@ export default function Navbar() {
                           <div className="h-px bg-gradient-to-r from-transparent via-indigo-200 dark:via-indigo-800 to-transparent" />
 
                           <div className="py-1.5">
+                            {user && (
+                              <Link
+                                to={`/profile/${user._id}`}
+                                onClick={() => setDropdownOpen(false)}
+                                className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-150"
+                              >
+                                <UserCircle className="w-4 h-4 opacity-70" /> My Profile
+                              </Link>
+                            )}
                             <Link
                               to="/dashboard"
                               onClick={() => setDropdownOpen(false)}
@@ -411,6 +473,20 @@ export default function Navbar() {
                               className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-150"
                             >
                               <Bookmark className="w-4 h-4 opacity-70" /> Bookmarks
+                            </Link>
+                            <Link
+                              to="/library"
+                              onClick={() => setDropdownOpen(false)}
+                              className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-150"
+                            >
+                              <BookMarked className="w-4 h-4 opacity-70" /> Resource Library
+                            </Link>
+                            <Link
+                              to="/notes"
+                              onClick={() => setDropdownOpen(false)}
+                              className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-150"
+                            >
+                              <MessageSquare className="w-4 h-4 opacity-70" /> My Notes
                             </Link>
                             {user.role === 'admin' && (
                               <>
@@ -430,6 +506,13 @@ export default function Navbar() {
                                   className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-amber-50 dark:hover:bg-amber-950/30 hover:text-amber-600 dark:hover:text-amber-400 transition-colors duration-150"
                                 >
                                   <Settings className="w-4 h-4 opacity-70" /> Admin Panel
+                                </Link>
+                                <Link
+                                  to="/instructor/mentorship"
+                                  onClick={() => setDropdownOpen(false)}
+                                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-amber-50 dark:hover:bg-amber-950/30 hover:text-amber-600 dark:hover:text-amber-400 transition-colors duration-150"
+                                >
+                                  <UserCircle className="w-4 h-4 opacity-70" /> Mentorship
                                 </Link>
                               </>
                             )}
@@ -618,6 +701,52 @@ export default function Navbar() {
                     >
                       <Sparkles className="w-4 h-4" /> AI Features
                     </Link>
+                    <Link
+                      to={`/profile/${user._id}`}
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-150"
+                    >
+                      <UserCircle className="w-4 h-4" /> My Profile
+                    </Link>
+                    <Link
+                      to="/library"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-150"
+                    >
+                      <BookMarked className="w-4 h-4" /> Resource Library
+                    </Link>
+                    <Link
+                      to="/notes"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-150"
+                    >
+                      <MessageSquare className="w-4 h-4" /> My Notes
+                    </Link>
+
+                    {/* Community Section */}
+                    <p className="px-3 pt-2.5 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                      Community
+                    </p>
+                    {[
+                      { to: '/leaderboard', icon: Trophy, label: 'Leaderboard' },
+                      { to: '/study-rooms', icon: Coffee, label: 'Study Rooms' },
+                      { to: '/challenges', icon: Zap, label: 'Challenges' },
+                      { to: '/peer-review', icon: Code, label: 'Peer Review' },
+                      { to: '/mentorship', icon: UserCircle, label: 'Mentorship' },
+                    ].map(({ to, icon: Icon, label }) => (
+                      <Link
+                        key={to}
+                        to={to}
+                        onClick={() => setMobileOpen(false)}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-colors duration-150 ${
+                          isLinkActive(to, true)
+                            ? 'bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300'
+                            : 'text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:text-indigo-600 dark:hover:text-indigo-400'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" /> {label}
+                      </Link>
+                    ))}
 
                     {user.role === 'admin' && (
                       <>
@@ -638,6 +767,13 @@ export default function Navbar() {
                           className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-amber-50 dark:hover:bg-amber-950/30 hover:text-amber-600 dark:hover:text-amber-400 font-medium text-sm transition-colors duration-150"
                         >
                           <Settings className="w-4 h-4" /> Admin Panel
+                        </Link>
+                        <Link
+                          to="/instructor/mentorship"
+                          onClick={() => setMobileOpen(false)}
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-amber-50 dark:hover:bg-amber-950/30 hover:text-amber-600 dark:hover:text-amber-400 font-medium text-sm transition-colors duration-150"
+                        >
+                          <UserCircle className="w-4 h-4" /> Mentorship
                         </Link>
                       </>
                     )}
@@ -671,8 +807,8 @@ export default function Navbar() {
       </nav>
 
       {/* Backdrop for dropdowns */}
-      {(dropdownOpen || bellOpen) && (
-        <div className="fixed inset-0 z-40" onClick={() => { setDropdownOpen(false); setBellOpen(false); }} />
+      {(dropdownOpen || bellOpen || communityOpen) && (
+        <div className="fixed inset-0 z-40" onClick={() => { setDropdownOpen(false); setBellOpen(false); setCommunityOpen(false); }} />
       )}
 
       {/* Spacer to push content below fixed navbar */}

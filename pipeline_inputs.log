@@ -1664,3 +1664,225 @@ Redesign the navbar in @/client/src/components/Navbar.jsx with a premium, modern
 - All transitions should use `duration-200` or spring physics via framer-motion where already used
 
 Check available packages at @/client/package.json. Preserve all import paths, hook usage (`useAuth`, `useNavigate`, `useLocation`), notification polling logic, and service calls unchanged — only the JSX structure and styling should change.
+
+========================================================================
+[2026-05-22 10:00:19 UTC]  CONTEXT ASSEMBLY OUTPUT | request_id=0a373c712be0 intent=edit
+========================================================================
+--- context_summary ---
+Queried vector DB and retrieved the full Home component including the exact hero section text (badge, H1, subheading, CTA buttons) with line numbers from client/src/pages/Home.jsx.
+
+--- enriched_prompt (1679 chars) ---
+Update the hero section text on the Home page to be more compelling, modern, and impactful. The hero section is located in @/client/src/pages/Home.jsx around lines 145–215.
+
+**Current hero text to replace:**
+
+1. **Top badge** (line ~155):
+   `100% Free — No Subscription Required`
+
+2. **H1 heading** (lines ~163–166):
+   ```
+   Learn Programming.
+   Land Your Dream Job.
+   ```
+   (where "Land Your Dream Job." is in yellow-300)
+
+3. **Subheading paragraph** (lines ~171–174):
+   `Master coding with structured courses, real projects, and hands-on challenges. Pass your final exam and earn a verified certificate — completely free.`
+
+4. **CTA buttons** (lines ~178–195):
+   - Primary: `Browse Courses`
+   - Secondary: `Get Started Free`
+
+**Replace with fresh, punchy, inspirational copy that:**
+- Makes the headline feel bold and empowering (2 lines, keep the yellow accent span on the second line)
+- Keeps the badge short and energetic (with the Zap icon already there)
+- Makes the subheading concise (1–2 sentences, evoke skill-building and career growth)
+- Keeps both CTA button labels (they link to `/courses` and `/auth` — do NOT change routes or styling)
+- Retains all existing animations, className, motion props, and layout — only change the visible text strings
+
+Example direction (feel free to improve):
+- Badge: `Start Learning Today — Zero Cost`
+- H1 line 1: `Code. Build.`  H1 line 2 (yellow): `Change Your Future.`
+- Subparagraph: `Gain real-world skills through expert-led courses, hands-on projects, and coding challenges. Earn a verified certificate — 100% free.`
+
+Only edit the string literals inside the hero section. Do not touch any other section of the file.
+
+========================================================================
+[2026-05-22 10:00:19 UTC]  PASSING TO EXECUTION ORCHESTRATOR | request_id=0a373c712be0 intent=edit
+========================================================================
+Update the hero section text on the Home page to be more compelling, modern, and impactful. The hero section is located in @/client/src/pages/Home.jsx around lines 145–215.
+
+**Current hero text to replace:**
+
+1. **Top badge** (line ~155):
+   `100% Free — No Subscription Required`
+
+2. **H1 heading** (lines ~163–166):
+   ```
+   Learn Programming.
+   Land Your Dream Job.
+   ```
+   (where "Land Your Dream Job." is in yellow-300)
+
+3. **Subheading paragraph** (lines ~171–174):
+   `Master coding with structured courses, real projects, and hands-on challenges. Pass your final exam and earn a verified certificate — completely free.`
+
+4. **CTA buttons** (lines ~178–195):
+   - Primary: `Browse Courses`
+   - Secondary: `Get Started Free`
+
+**Replace with fresh, punchy, inspirational copy that:**
+- Makes the headline feel bold and empowering (2 lines, keep the yellow accent span on the second line)
+- Keeps the badge short and energetic (with the Zap icon already there)
+- Makes the subheading concise (1–2 sentences, evoke skill-building and career growth)
+- Keeps both CTA button labels (they link to `/courses` and `/auth` — do NOT change routes or styling)
+- Retains all existing animations, className, motion props, and layout — only change the visible text strings
+
+Example direction (feel free to improve):
+- Badge: `Start Learning Today — Zero Cost`
+- H1 line 1: `Code. Build.`  H1 line 2 (yellow): `Change Your Future.`
+- Subparagraph: `Gain real-world skills through expert-led courses, hands-on projects, and coding challenges. Earn a verified certificate — 100% free.`
+
+Only edit the string literals inside the hero section. Do not touch any other section of the file.
+
+========================================================================
+[2026-05-22 11:41:21 UTC]  CONTEXT ASSEMBLY OUTPUT | request_id=315768dbb777 intent=edit
+========================================================================
+--- context_summary ---
+Gathered full project structure, App.jsx routes, key backend routes, and existing page/component list to map the current feature set and identify natural extension points for 10 new domain-relevant features.
+
+--- enriched_prompt (7596 chars) ---
+Add 10 new domain-relevant features to the Learnify online learning platform. All features must be fully implemented end-to-end (backend routes/controllers/models + frontend pages/components) and wired into the existing app. Reference the current stack: @/client/package.json, @/server/package.json, @/client/src/App.jsx, @/server/src/index.js.
+
+---
+
+## Feature 1 — Discussion Forums per Course
+- Each course has a threaded discussion forum where enrolled students can post questions and reply to others.
+- Backend: `ForumPost` model (courseId, authorId, parentId, content, upvotes[], createdAt). REST endpoints: GET/POST `/api/courses/:id/forum`, POST `/api/forum/:postId/reply`, POST `/api/forum/:postId/upvote`.
+- Frontend: `/courses/:slug/forum` page — thread list, reply threads, upvote buttons, new post form. Link it from the CourseDetail tabs (Overview / Curriculum / Instructor / **Forum**).
+
+## Feature 2 — Live Study Rooms (Pomodoro-style)
+- Students can create or join virtual study rooms with a shared Pomodoro timer (25 min work / 5 min break). Room members are displayed as avatars. Timer state is maintained server-side (or via localStorage sync) and visually counts down with an animated ring.
+- Backend: `StudyRoom` model (name, creatorId, members[], timerState, isActive). Endpoints: GET/POST/DELETE `/api/study-rooms`, POST `/api/study-rooms/:id/join`, POST `/api/study-rooms/:id/leave`, POST `/api/study-rooms/:id/timer` (start/pause/reset).
+- Frontend: `/study-rooms` page — room cards, create-room modal, inside-room view with Pomodoro ring, member avatars, and a simple chat box.
+
+## Feature 3 — Leaderboard & Gamification
+- Global and per-course leaderboards ranked by XP points. Students earn XP for completing lessons (+10), passing quizzes (+20), finishing courses (+100), streak days (+5/day), and posting in forums (+5).
+- Backend: `XP` field added to User model. `XPEvent` model (userId, type, points, courseId, createdAt). Endpoint: GET `/api/leaderboard?scope=global|course&courseId=`. Award XP inside relevant controllers.
+- Frontend: `/leaderboard` page — top-50 ranked students with avatar, name, total XP, badge tier (Bronze/Silver/Gold/Platinum). Student's own rank shown pinned at bottom if outside top 50. Per-course tab available.
+
+## Feature 4 — Notes & Highlights (per Lesson)
+- Students can take rich inline notes and highlight text within lesson content. Notes are private per user per lesson.
+- Backend: `Note` model (userId, lessonId, courseId, content, highlights[], updatedAt). Endpoints: GET/POST/PUT/DELETE `/api/notes?lessonId=`.
+- Frontend: Notes panel inside CourseViewer (already has a basic notes stub — upgrade it). Rich textarea with auto-save (debounced 800ms), highlight colour picker, and a "My Notes" consolidated view at `/notes`.
+
+## Feature 5 — Peer Code Review
+- Students can submit their coding challenge solutions for peer review. Other students can comment and rate submissions (1–5 stars).
+- Backend: `CodeSubmission` model (userId, lessonId, courseId, code, language, reviews[]). Endpoints: POST `/api/submissions`, GET `/api/submissions?lessonId=`, POST `/api/submissions/:id/review`.
+- Frontend: `/peer-review` page — browse open submissions, view code in a styled code block, leave a review. Inside CourseViewer, after completing a challenge, a "Submit for Peer Review" button appears.
+
+## Feature 6 — Weekly Challenges & Contests
+- Admins post timed weekly coding challenges (open to all students). Students submit solutions before the deadline and are ranked by correctness + submission time.
+- Backend: `WeeklyChallenge` model (title, description, starterCode, testCases[], difficulty, deadline, submissions[]). Endpoints: GET/POST `/api/challenges`, GET `/api/challenges/:id`, POST `/api/challenges/:id/submit`.
+- Frontend: `/challenges` page — active challenge card with countdown timer, past challenges archive, submission form with code editor, and a mini leaderboard of top solutions.
+
+## Feature 7 — Student Portfolio / Profile Page
+- Each student has a public profile showing their earned certificates, completed courses, XP level, skills, forum contributions, and a bio they can edit.
+- Backend: Extend User model with `bio`, `website`, `github`, `skills[]`, `isPublic`. Endpoint: GET `/api/profile/:userId` (public), PUT `/api/profile/me` (authenticated).
+- Frontend: `/profile/:userId` page — profile header (avatar with gradient, name, bio, social links), stats row (courses, certificates, XP, streak), certificate gallery, skills chips. Own profile shows an Edit Profile modal.
+
+## Feature 8 — Course Reviews & Ratings
+- Enrolled students who have completed at least one lesson can submit a star rating (1–5) and written review for a course. Average rating shown on CourseCard and CourseDetail.
+- Backend: `Review` model (userId, courseId, rating, comment, createdAt). Endpoints: GET `/api/courses/:id/reviews`, POST `/api/courses/:id/reviews`, DELETE `/api/courses/:id/reviews/:reviewId` (own or admin). Aggregate avgRating into Course.
+- Frontend: Reviews tab on CourseDetail page. Star-rating input widget, list of reviews with avatar + date. Review summary (avg star, histogram bars) at top.
+
+## Feature 9 — Offline / Download Mode (Resource Library)
+- Students can mark course resources (PDFs, slides, code files) as "saved" to a personal resource library accessible at `/library`. Track which resources have been downloaded/saved.
+- Backend: `SavedResource` model (userId, courseId, lessonId, resourceIndex, resourceName, url, savedAt). Endpoints: POST/DELETE `/api/library`, GET `/api/library`.
+- Frontend: `/library` page — grid of saved resources grouped by course, with download button and last-saved timestamp. "Save to Library" toggle on each resource card inside CourseViewer.
+
+## Feature 10 — Mentorship Matching
+- Students can request a mentor (admin/instructor user). Admins can accept requests and the pair gets a simple private messaging thread.
+- Backend: `MentorRequest` model (studentId, mentorId, status: pending|active|closed, messages[]). Endpoints: POST `/api/mentorship/request`, GET `/api/mentorship/my`, POST `/api/mentorship/:id/message`, PUT `/api/mentorship/:id/status` (admin). 
+- Frontend: `/mentorship` page for students — request form (pick from available mentors list, write a goal statement), active session view with chat thread. Instructor Panel gets a `/instructor/mentorship` section listing pending/active requests with accept/close controls and the message thread.
+
+---
+
+## Integration Requirements
+- Register all new backend routes in @/server/src/index.js.
+- Add all new frontend routes in @/client/src/App.jsx (protect student-only routes with `ProtectedRoute`, admin-only with `AdminRoute`).
+- Add navigation links for key new pages (`/leaderboard`, `/challenges`, `/study-rooms`, `/library`, `/mentorship`, `/profile/:userId`) inside @/client/src/components/Navbar.jsx — group them logically (e.g. a "Community" dropdown for Leaderboard, Forums, Study Rooms, Challenges).
+- Award XP events inside existing controllers (completeLesson, submitQuiz, submitExam) by calling a shared `awardXP(userId, type, courseId)` helper.
+- All pages must match the existing design system: CSS variables (`var(--bg-primary)`, `var(--bg-card)`, `var(--text-primary)`, `var(--border)`), Tailwind dark mode, and Framer Motion entrance animations consistent with the rest of the app.
+- Use the existing `protect` and `adminOnly` middleware from @/server/src/middleware/auth.js.
+- Use the existing `api` axios instance from @/client/src/utils/api.js for all frontend service calls.
+
+
+========================================================================
+[2026-05-22 11:41:21 UTC]  PASSING TO EXECUTION ORCHESTRATOR | request_id=315768dbb777 intent=edit
+========================================================================
+Add 10 new domain-relevant features to the Learnify online learning platform. All features must be fully implemented end-to-end (backend routes/controllers/models + frontend pages/components) and wired into the existing app. Reference the current stack: @/client/package.json, @/server/package.json, @/client/src/App.jsx, @/server/src/index.js.
+
+---
+
+## Feature 1 — Discussion Forums per Course
+- Each course has a threaded discussion forum where enrolled students can post questions and reply to others.
+- Backend: `ForumPost` model (courseId, authorId, parentId, content, upvotes[], createdAt). REST endpoints: GET/POST `/api/courses/:id/forum`, POST `/api/forum/:postId/reply`, POST `/api/forum/:postId/upvote`.
+- Frontend: `/courses/:slug/forum` page — thread list, reply threads, upvote buttons, new post form. Link it from the CourseDetail tabs (Overview / Curriculum / Instructor / **Forum**).
+
+## Feature 2 — Live Study Rooms (Pomodoro-style)
+- Students can create or join virtual study rooms with a shared Pomodoro timer (25 min work / 5 min break). Room members are displayed as avatars. Timer state is maintained server-side (or via localStorage sync) and visually counts down with an animated ring.
+- Backend: `StudyRoom` model (name, creatorId, members[], timerState, isActive). Endpoints: GET/POST/DELETE `/api/study-rooms`, POST `/api/study-rooms/:id/join`, POST `/api/study-rooms/:id/leave`, POST `/api/study-rooms/:id/timer` (start/pause/reset).
+- Frontend: `/study-rooms` page — room cards, create-room modal, inside-room view with Pomodoro ring, member avatars, and a simple chat box.
+
+## Feature 3 — Leaderboard & Gamification
+- Global and per-course leaderboards ranked by XP points. Students earn XP for completing lessons (+10), passing quizzes (+20), finishing courses (+100), streak days (+5/day), and posting in forums (+5).
+- Backend: `XP` field added to User model. `XPEvent` model (userId, type, points, courseId, createdAt). Endpoint: GET `/api/leaderboard?scope=global|course&courseId=`. Award XP inside relevant controllers.
+- Frontend: `/leaderboard` page — top-50 ranked students with avatar, name, total XP, badge tier (Bronze/Silver/Gold/Platinum). Student's own rank shown pinned at bottom if outside top 50. Per-course tab available.
+
+## Feature 4 — Notes & Highlights (per Lesson)
+- Students can take rich inline notes and highlight text within lesson content. Notes are private per user per lesson.
+- Backend: `Note` model (userId, lessonId, courseId, content, highlights[], updatedAt). Endpoints: GET/POST/PUT/DELETE `/api/notes?lessonId=`.
+- Frontend: Notes panel inside CourseViewer (already has a basic notes stub — upgrade it). Rich textarea with auto-save (debounced 800ms), highlight colour picker, and a "My Notes" consolidated view at `/notes`.
+
+## Feature 5 — Peer Code Review
+- Students can submit their coding challenge solutions for peer review. Other students can comment and rate submissions (1–5 stars).
+- Backend: `CodeSubmission` model (userId, lessonId, courseId, code, language, reviews[]). Endpoints: POST `/api/submissions`, GET `/api/submissions?lessonId=`, POST `/api/submissions/:id/review`.
+- Frontend: `/peer-review` page — browse open submissions, view code in a styled code block, leave a review. Inside CourseViewer, after completing a challenge, a "Submit for Peer Review" button appears.
+
+## Feature 6 — Weekly Challenges & Contests
+- Admins post timed weekly coding challenges (open to all students). Students submit solutions before the deadline and are ranked by correctness + submission time.
+- Backend: `WeeklyChallenge` model (title, description, starterCode, testCases[], difficulty, deadline, submissions[]). Endpoints: GET/POST `/api/challenges`, GET `/api/challenges/:id`, POST `/api/challenges/:id/submit`.
+- Frontend: `/challenges` page — active challenge card with countdown timer, past challenges archive, submission form with code editor, and a mini leaderboard of top solutions.
+
+## Feature 7 — Student Portfolio / Profile Page
+- Each student has a public profile showing their earned certificates, completed courses, XP level, skills, forum contributions, and a bio they can edit.
+- Backend: Extend User model with `bio`, `website`, `github`, `skills[]`, `isPublic`. Endpoint: GET `/api/profile/:userId` (public), PUT `/api/profile/me` (authenticated).
+- Frontend: `/profile/:userId` page — profile header (avatar with gradient, name, bio, social links), stats row (courses, certificates, XP, streak), certificate gallery, skills chips. Own profile shows an Edit Profile modal.
+
+## Feature 8 — Course Reviews & Ratings
+- Enrolled students who have completed at least one lesson can submit a star rating (1–5) and written review for a course. Average rating shown on CourseCard and CourseDetail.
+- Backend: `Review` model (userId, courseId, rating, comment, createdAt). Endpoints: GET `/api/courses/:id/reviews`, POST `/api/courses/:id/reviews`, DELETE `/api/courses/:id/reviews/:reviewId` (own or admin). Aggregate avgRating into Course.
+- Frontend: Reviews tab on CourseDetail page. Star-rating input widget, list of reviews with avatar + date. Review summary (avg star, histogram bars) at top.
+
+## Feature 9 — Offline / Download Mode (Resource Library)
+- Students can mark course resources (PDFs, slides, code files) as "saved" to a personal resource library accessible at `/library`. Track which resources have been downloaded/saved.
+- Backend: `SavedResource` model (userId, courseId, lessonId, resourceIndex, resourceName, url, savedAt). Endpoints: POST/DELETE `/api/library`, GET `/api/library`.
+- Frontend: `/library` page — grid of saved resources grouped by course, with download button and last-saved timestamp. "Save to Library" toggle on each resource card inside CourseViewer.
+
+## Feature 10 — Mentorship Matching
+- Students can request a mentor (admin/instructor user). Admins can accept requests and the pair gets a simple private messaging thread.
+- Backend: `MentorRequest` model (studentId, mentorId, status: pending|active|closed, messages[]). Endpoints: POST `/api/mentorship/request`, GET `/api/mentorship/my`, POST `/api/mentorship/:id/message`, PUT `/api/mentorship/:id/status` (admin). 
+- Frontend: `/mentorship` page for students — request form (pick from available mentors list, write a goal statement), active session view with chat thread. Instructor Panel gets a `/instructor/mentorship` section listing pending/active requests with accept/close controls and the message thread.
+
+---
+
+## Integration Requirements
+- Register all new backend routes in @/server/src/index.js.
+- Add all new frontend routes in @/client/src/App.jsx (protect student-only routes with `ProtectedRoute`, admin-only with `AdminRoute`).
+- Add navigation links for key new pages (`/leaderboard`, `/challenges`, `/study-rooms`, `/library`, `/mentorship`, `/profile/:userId`) inside @/client/src/components/Navbar.jsx — group them logically (e.g. a "Community" dropdown for Leaderboard, Forums, Study Rooms, Challenges).
+- Award XP events inside existing controllers (completeLesson, submitQuiz, submitExam) by calling a shared `awardXP(userId, type, courseId)` helper.
+- All pages must match the existing design system: CSS variables (`var(--bg-primary)`, `var(--bg-card)`, `var(--text-primary)`, `var(--border)`), Tailwind dark mode, and Framer Motion entrance animations consistent with the rest of the app.
+- Use the existing `protect` and `adminOnly` middleware from @/server/src/middleware/auth.js.
+- Use the existing `api` axios instance from @/client/src/utils/api.js for all frontend service calls.
+
